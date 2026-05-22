@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS_SUBCON - Login</title>
+    <!-- Links natively to your local style sheet -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <div class="card">
+        
+        <div class="brand">
+            <h2>SAS_SUBCON</h2>
+            <p>Subcontractor Verification Portal</p>
+        </div>
+
+        <!-- Alert Banner Box for API Responses -->
+        <div id="statusBox" class="status-box"></div>
+
+        <!-- Input Processing Form -->
+        <form id="loginForm">
+            <div class="input-group">
+                <label>Corporate Email</label>
+                <input type="email" id="email" required placeholder="username@sas-subcon.com">
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="submit-btn">Log In Securely</button>
+        </form>
+    </div>
+
+    <!-- Frontend Script: Communicates directly with your backend routes and transmits data -->
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault(); // Stop standard browser page refresh reload loops
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const statusBox = document.getElementById('statusBox');
+
+            try {
+                // Clear previous responses
+                statusBox.className = "status-box";
+                statusBox.style.display = "none";
+
+                // YES! This will send data to your actual backend user login API endpoint
+                const apiCall = await fetch('/user/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }) // Places form inputs into the request body
+                });
+
+                const data = await apiCall.json();
+
+                if (!apiCall.ok) {
+                    // Triggers if backend user_controller rejects credentials
+                    statusBox.innerText = data.message || "Authentication credentials failed.";
+                    statusBox.classList.add("status-error");
+                    return;
+                }
+                console.log("login successfull")
+
+                // SUCCESS: Save your session tracking token inside browser storage cache
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('role', data.user.role);
+                localStorage.setItem('userId', data.user.id);       // Saves their MongoDB User ID
+                localStorage.setItem('email', data.user.email);     // Saves their corporate email
+                localStorage.setItem('siteId', data.user.site_id || 'HO'); // Saves their physical Site ID (or 'HO' if Head Office)
+
+
+                statusBox.innerText = "Identity verified! Routing to operations workspace...";
+                statusBox.classList.add("status-success");
+
+                // Route them to the dashboard layout page view after brief delay
+                setTimeout(() => {
+                    console.log("login successfull")
+                    window.location.href = "/user/dashboard-view";
+                }, 1200);
+
+            } catch (err) {
+                statusBox.innerText = "Network transmission fault: " + err.message;
+                statusBox.classList.add("status-error");
+            }
+        });
+    </script>
+</body>
+</html>
