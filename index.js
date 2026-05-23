@@ -1,6 +1,9 @@
 const express = require("express");
 const { connection } = require("./config/db");
-const { Userroute } = require("./routes/user_route")
+const { Userroute } = require("./routes/user_route");
+const { Siteroute } = require("./routes/sites_route");
+const { Supplierroute } = require("./routes/suppliers_route");
+const { Designationroute } = require("./routes/designation_route");
 
 require("dotenv").config();
 const cors = require("cors");
@@ -27,6 +30,9 @@ app.get("/",async(req,res)=>{
 });
 
 app.use("/user",Userroute);
+app.use("/site", Siteroute);
+app.use("/supplier", Supplierroute);
+app.use("/designation", Designationroute);
 
 // Handle invalid routes
 app.use(logger,(req, res) => {

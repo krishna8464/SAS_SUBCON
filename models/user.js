@@ -29,6 +29,11 @@ const UserSchema = new mongoose.Schema({
         ref: "Site",
         default: null
     },
+    supplier_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Supplier",
+        default: null // Only populated if role === 'SUPPLIER'
+    },
     cell_number: {
         type: String,
         required: true,

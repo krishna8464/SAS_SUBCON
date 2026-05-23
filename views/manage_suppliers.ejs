@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS_SUBCON - Supplier Management</title>
+    <!-- Tailwind CSS Engine -->
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-950 border-b border-slate-800 sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-lg">
+        <div>
+            <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                <span>SAS_SUBCON</span>
+                <span class="text-xs bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-500/30">HQ Portal</span>
+            </h1>
+            <p class="text-xs text-slate-400 font-medium mt-0.5">Corporate Subcontractor Registry</p>
+        </div>
+        <a href="/user/dashboard-view" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700">
+            Back to Dashboard
+        </a>
+    </header>
+
+    <!-- Main Container Grid -->
+    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Status Notification Box -->
+        <div id="statusBox" class="hidden lg:col-span-3 p-4 rounded-xl text-sm font-semibold border text-center transition-all duration-300"></div>
+        <!-- LEFT PANEL: Registration Form -->
+        <section class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl h-fit">
+            <div class="mb-5">
+                <h3 id="formTitle" class="text-lg font-black text-white flex items-center gap-2">🤝 Register Subcontractor</h3>
+                <p class="text-xs text-slate-400 mt-1">Add or modify operational company registry indicators.</p>
+            </div>
+
+            <form id="supplierForm" class="space-y-4">
+                <!-- Hidden parameter to hold identification string during updates -->
+                <input type="hidden" id="supplierId" value="">
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Company Name</label>
+                    <input type="text" id="supplierName" required 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="e.g., Hima Services">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Oman CR Number</label>
+                    <input type="text" id="crNumber" required 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800"
+                        placeholder="e.g., 1092834">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Corporate Email</label>
+                    <input type="email" id="contactEmail" required 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="coordinator@company.com">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Contact Phone Number</label>
+                    <input type="text" id="contactPhone" required 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="e.g., +96899334455">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Framework Status</label>
+                    <select id="status" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="submit" id="submitBtn" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-blue-600/10">
+                        Save Supplier
+                    </button>
+                    <button type="button" id="cancelEditBtn" 
+                        class="hidden bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition border border-slate-700">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </section>
+        <!-- RIGHT PANEL: Directory Table Layout & Search Engine Area -->
+        <section class="lg:col-span-2 space-y-4 flex flex-col h-[calc(100vh-140px)]">
+            
+            <!-- Filter Search Bar -->
+            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full md:max-w-md">
+                    <input type="text" id="searchInput" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        placeholder="Search by company name, CR, email...">
+                    <span class="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
+                </div>
+                <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                    Total Registered Enclaves: <span id="recordCount" class="text-blue-400 font-black">0</span>
+                </div>
+            </div>
+
+            <!-- Table Container Layer -->
+            <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl flex-1 overflow-hidden flex flex-col">
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
+                        <thead>
+                            <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                                <th class="px-6 py-4">Company Profile</th>
+                                <th class="px-6 py-4">CR Number</th>
+                                <th class="px-6 py-4">Communications</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="supplierTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
+                            <!-- Dynamic Content Rows Go Here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script>
+        const token = localStorage.getItem('token');
+        let allSuppliers = [];
+
+        if (!token) { window.location.href = "/user/login-page"; }
+
+        // READ operation data loop
+        async function loadSuppliers() {
+            try {
+                const res = await fetch('/supplier/all', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                allSuppliers = data.suppliers || [];
+                renderTable(allSuppliers);
+            } catch (err) { showAlert(err.message, 'error'); }
+        }
+
+        // Table Builder rendering routine engine
+        function renderTable(arr) {
+            const tbody = document.getElementById('supplierTableBody');
+            document.getElementById('recordCount').innerText = arr.length;
+            tbody.innerHTML = '';
+
+            if (arr.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">No subcontractor records found.</td></tr>`;
+                return;
+            }
+
+            arr.forEach(sup => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs";
+                const badge = sup.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400';
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-white">${sup.supplier_name}</td>
+                    <td class="px-6 py-4 font-mono">${sup.cr_number}</td>
+                    <td class="px-6 py-4"><div>${sup.contact_email}</div><div class="text-slate-500 mt-0.5">${sup.contact_phone}</div></td>
+                    <td class="px-6 py-4"><span class="px-2 py-0.5 rounded border border-slate-800 text-[10px] font-bold uppercase ${badge}">${sup.status}</span></td>
+                    <td class="px-6 py-4 text-right"><div class="flex justify-end gap-2">
+                        <button onclick="populateEdit('${sup._id}')" class="bg-blue-600/10 text-blue-400 px-3 py-1 rounded shadow-sm hover:bg-blue-600 hover:text-white transition">Edit</button>
+                        <button onclick="deactivateSupplier('${sup._id}')" class="bg-rose-600/10 text-rose-400 px-3 py-1 shadow-sm hover:bg-rose-600 hover:text-white transition">Suspend</button>
+                    </div></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // CREATE & UPDATE execution pipeline channel handlers
+        document.getElementById('supplierForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('supplierId').value;
+            const payload = {
+                supplier_name: document.getElementById('supplierName').value,
+                cr_number: document.getElementById('crNumber').value,
+                contact_email: document.getElementById('contactEmail').value,
+                contact_phone: document.getElementById('contactPhone').value,
+                status: document.getElementById('status').value
+            };
+            const isEdit = id.length > 0;
+            try {
+                const res = await fetch(isEdit ? `/supplier/update/${id}` : '/supplier/create', {
+                    method: isEdit ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) { const data = await res.json(); throw new Error(data.message); }
+                showAlert(isEdit ? "Profile updated!" : "Supplier created!", 'success');
+                resetForm(); loadSuppliers();
+            } catch (err) { showAlert(err.message, 'error'); }
+        });
+
+        function populateEdit(id) {
+            const sup = allSuppliers.find(s => s._id === id);
+            if (!sup) return;
+            document.getElementById('supplierId').value = sup._id;
+            document.getElementById('supplierName').value = sup.supplier_name;
+            document.getElementById('crNumber').value = sup.cr_number;
+            document.getElementById('crNumber').disabled = true;
+            document.getElementById('contactEmail').value = sup.contact_email;
+            document.getElementById('contactPhone').value = sup.contact_phone;
+            document.getElementById('status').value = sup.status;
+            document.getElementById('formTitle').innerText = "✏️ Modify Corporate Profile";
+            document.getElementById('submitBtn').innerText = "Update Profile";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+        }
+
+        async function deactivateSupplier(id) {
+            if (!confirm("Deactivate this subcontractor profile?")) return;
+            try {
+                const res = await fetch(`/supplier/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { const data = await res.json(); throw new Error(data.message); }
+                showAlert("Profile deactivated", 'success'); loadSuppliers();
+            } catch (err) { showAlert(err.message, 'error'); }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            const filtered = allSuppliers.filter(s => s.supplier_name.toLowerCase().includes(val) || s.cr_number.includes(val) || s.contact_email.toLowerCase().includes(val));
+            renderTable(filtered);
+        });
+
+        function resetForm() {
+            document.getElementById('supplierForm').reset();
+            document.getElementById('supplierId').value = "";
+            document.getElementById('crNumber').disabled = false;
+            document.getElementById('formTitle').innerText = "🤝 Register Subcontractor";
+            document.getElementById('submitBtn').innerText = "Save Supplier";
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+        }
+
+        document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+
+        function showAlert(msg, type) {
+            const sb = document.getElementById('statusBox'); sb.innerText = msg;
+            sb.className = `mb-6 p-4 rounded-xl text-sm font-semibold border text-center block ${type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`;
+            setTimeout(() => sb.className = "hidden", 4000);
+        }
+
+        loadSuppliers();
+    </script>
+</body>
+</html>

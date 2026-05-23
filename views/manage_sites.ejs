@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS_SUBCON - Site Management</title>
+    <!-- 1. Local Fallback Static Stylesheet Link -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- 2. CORRECTED Tailwind CSS Runtime Engine Script CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased">
+
+    <!-- OVER-RIDE WRAPPER: Forces everything to flow top-to-bottom, breaking the bad CSS rule -->
+    <div class="flex flex-col w-full min-h-screen items-stretch justify-start">
+
+        <!-- Top Navigation Header: Spans 100% of top screen width -->
+        <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-lg w-full shrink-0">
+            <div>
+                <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                    <span>SAS_SUBCON</span>
+                    <span class="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/30">Hub Portal</span>
+                </h1>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Physical Infrastructure & Project Locations</p>
+            </div>
+            <a href="/user/dashboard-view" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700">
+                Back to Dashboard
+            </a>
+        </header>
+        <!-- Main Content Area: Aligns Form and Table Side-by-Side underneath header -->
+        <main class="max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+            
+            <!-- Status Notification Alert Banner -->
+            <div id="statusBox" class="hidden lg:col-span-3 p-4 rounded-xl text-sm font-semibold border text-center transition-all duration-300"></div>
+            
+            <!-- LEFT PANEL: Operational Hub Configuration Input Form -->
+            <section class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl h-fit">
+                <div class="mb-5">
+                    <h3 id="formTitle" class="text-lg font-black text-white flex items-center gap-2">🏗️ Provision Operational Site</h3>
+                    <p class="text-xs text-slate-400 mt-1">Configure workspace parameters and master deployment locations.</p>
+                </div>
+
+                <form id="siteForm" class="space-y-4">
+                    <input type="hidden" id="siteId" value="">
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Functional Site Code</label>
+                        <input type="text" id="siteCode" required 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-bold text-white uppercase focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                            placeholder="e.g., FHD, YBL, FHD_PDO">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Descriptive Site Name</label>
+                        <input type="text" id="siteName" required 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                            placeholder="e.g., Fahud Maintenance Camp">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Geographical Location (Oman Region)</label>
+                        <input type="text" id="location" required 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                            placeholder="e.g., Fahud, Oman">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Deployment Framework Status</label>
+                        <select id="status" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button type="submit" id="submitBtn" 
+                            class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10">
+                            Register Site
+                        </button>
+                        <button type="button" id="cancelEditBtn" 
+                            class="hidden bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition border border-slate-700">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- RIGHT PANEL: Live Operational Hub Directory Table & Search Field Area -->
+           <section class="lg:col-span-2 space-y-4 flex flex-col min-h-[500px] h-auto bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl">
+                
+                <!-- Live Active Filter Search Bar -->
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl flex flex-col md:flex-row gap-3 items-center justify-between">
+                    <div class="relative w-full md:max-w-md">
+                        <input type="text" id="searchInput" 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                            placeholder="Search by code, descriptive name, or region...">
+                        <span class="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
+                    </div>
+                    <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                        Active Deployment Locations: <span id="recordCount" class="text-emerald-400 font-black">0</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Table Grid Output Content Layer Container -->
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl flex-1 overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                                    <th class="px-6 py-4">Site Code</th>
+                                    <th class="px-6 py-4">Descriptive Name</th>
+                                    <th class="px-6 py-4">Oman Region / Location</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4 text-right">Actions Pipeline</th>
+                                </tr>
+                            </thead>
+                            <tbody id="siteTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
+                                <!-- Javascript data inject loop -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div> <!-- Closes global over-ride flex wrapper layout -->
+    <!-- Script Pipeline: Fully handles data orchestration with your backend APIs -->
+    <script>
+        const token = localStorage.getItem('token');
+        let allSites = [];
+
+        if (!token) { window.location.href = "/user/login-page"; }
+
+        async function loadSites() {
+            try {
+                const res = await fetch('/site/all', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                allSites = data.sites || [];
+                renderTable(allSites);
+            } catch (err) { showAlert(err.message, 'error'); }
+        }
+
+        function renderTable(arr) {
+            const tbody = document.getElementById('siteTableBody');
+            document.getElementById('recordCount').innerText = arr.length;
+            tbody.innerHTML = '';
+
+            if (arr.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">No operational locations found matching requirements.</td></tr>`;
+                return;
+            }
+
+            arr.forEach(site => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition";
+                const badge = site.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400';
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-black font-mono text-white tracking-wider">${site.site_code}</td>
+                    <td class="px-6 py-4 font-bold text-slate-200">${site.site_name}</td>
+                    <td class="px-6 py-4 text-slate-400">${site.location}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-0.5 rounded border border-slate-800 text-[10px] font-bold uppercase ${badge}">${site.status}</span></td>
+                    <td class="px-6 py-4 text-right"><div class="flex justify-end gap-2">
+                        <button onclick="populateEdit('${site._id}')" class="bg-blue-600/10 text-blue-400 border border-blue-500/10 px-3 py-1.5 text-[11px] font-bold rounded-lg shadow-sm hover:bg-blue-600 hover:text-white transition">Edit</button>
+                        <button onclick="deactivateSite('${site._id}')" class="bg-rose-600/10 text-rose-400 border border-rose-500/10 px-3 py-1.5 text-[11px] font-bold rounded-lg shadow-sm hover:bg-rose-600 hover:text-white transition">Deactivate</button>
+                    </div></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('siteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('siteId').value;
+            const payload = {
+                site_code: document.getElementById('siteCode').value,
+                site_name: document.getElementById('siteName').value,
+                location: document.getElementById('location').value,
+                status: document.getElementById('status').value
+            };
+            const isEdit = id.length > 0;
+            try {
+                const res = await fetch(isEdit ? `/site/update/${id}` : '/site/create', {
+                    method: isEdit ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) { const data = await res.json(); throw new Error(data.message); }
+                showAlert(isEdit ? "Site configuration parameters modified!" : "Operational site created successfully!", 'success');
+                resetForm(); loadSites();
+            } catch (err) { showAlert(err.message, 'error'); }
+        });
+
+        function populateEdit(id) {
+            const site = allSites.find(s => s._id === id);
+            if (!site) return;
+            document.getElementById('siteId').value = site._id;
+            document.getElementById('siteCode').value = site.site_code;
+            document.getElementById('siteCode').disabled = true; 
+            document.getElementById('siteName').value = site.site_name;
+            document.getElementById('location').value = site.location;
+            document.getElementById('status').value = site.status;
+            document.getElementById('formTitle').innerText = "✏️ Modify Operational Parameters";
+            document.getElementById('submitBtn').innerText = "Update Site Configuration";
+            document.getElementById('submitBtn').className = "flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition";
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+        }
+
+        async function deactivateSite(id) {
+            if (!confirm("Are you sure you want to change this operational hub deployment status to Inactive?")) return;
+            try {
+                const res = await fetch(`/site/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) { const data = await res.json(); throw new Error(data.message); }
+                showAlert("Operational hub profile flagged as Inactive status.", 'success'); loadSites();
+            } catch (err) { showAlert(err.message, 'error'); }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase().trim();
+            const filtered = allSites.filter(s => 
+                s.site_code.toLowerCase().includes(val) || 
+                s.site_name.toLowerCase().includes(val) || 
+                s.location.toLowerCase().includes(val)
+            );
+            renderTable(filtered);
+        });
+
+        function resetForm() {
+            document.getElementById('siteForm').reset();
+            document.getElementById('siteId').value = "";
+            document.getElementById('siteCode').disabled = false;
+            document.getElementById('formTitle').innerText = "🏗️ Provision Operational Site";
+            document.getElementById('submitBtn').innerText = "Register Site";
+            document.getElementById('submitBtn').className = "flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition";
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+        }
+
+        document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
+
+        function showAlert(msg, type) {
+            const sb = document.getElementById('statusBox'); sb.innerText = msg;
+            sb.className = `mb-6 p-4 rounded-xl text-sm font-semibold border text-center block ${type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`;
+            setTimeout(() => sb.className = "hidden", 4000);
+        }
+
+        loadSites();
+    </script>
+</body>
+</html>

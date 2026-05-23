@@ -80,7 +80,8 @@ const loginUser = async (req, res) => {
         { 
           userid: user._id, 
           role: user.role, 
-          siteId: user.site_id 
+          siteId: user.site_id,
+          supplierId: user.supplier_id 
         }, 
         JWT_SECRET, 
         { expiresIn: "1d" }
@@ -102,7 +103,8 @@ const loginUser = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
-          site_id: user.site_id
+          site_id: user.site_id,
+          supplierId: user.supplier_id 
         }
       });
   

@@ -72,6 +72,7 @@
                 localStorage.setItem('userId', data.user.id);       // Saves their MongoDB User ID
                 localStorage.setItem('email', data.user.email);     // Saves their corporate email
                 localStorage.setItem('siteId', data.user.site_id || 'HO'); // Saves their physical Site ID (or 'HO' if Head Office)
+                localStorage.setItem('supplierId', data.user.supplier_id || 'NONE'); 
 
 
                 statusBox.innerText = "Identity verified! Routing to operations workspace...";
@@ -80,7 +81,7 @@
                 // Route them to the dashboard layout page view after brief delay
                 setTimeout(() => {
                     console.log("login successfull")
-                    window.location.href = "/user/dashboard-view";
+                    window.location.href = "/site/manage-sites";
                 }, 1200);
 
             } catch (err) {
