@@ -21,8 +21,9 @@ const createDesignation = async (req, res) => {
         }
 
         const newDesignation = new Designation({
-            title: trimmedTitle,
-            risk_level: risk_level || "Low"
+        title: trimmedTitle,
+        risk_level: risk_level || "Low",
+        status: req.body.status || "Active" // 🌟 FIXED HERE: Guarantees status field is populated
         });
 
         await newDesignation.save();
@@ -97,16 +98,30 @@ const updateDesignation = async (req, res) => {
 // 5. DELETE DESIGNATION
 const deleteDesignation = async (req, res) => {
     try {
-        const deletedDesignation = await Designation.findByIdAndDelete(req.params.id);
-        if (!deletedDesignation) {
-            return res.status(404).json({ message: "Designation not found." });
+        // 1. Fetch the target job designation profile to check its current database state value
+        const targetDesignation = await Designation.findById(req.params.id);
+        if (!targetDesignation) {
+            return res.status(404).json({ message: "Job designation records not found." });
         }
-        res.status(200).json({ message: "Designation removed successfully from master records." });
+
+        // 2. Compute the exact opposite state value toggle parameter dynamically
+        const nextStatusState = targetDesignation.status === "Active" ? "Inactive" : "Active";
+
+        // 3. Execute the single-run modification swap block using the returnDocument 'after' standard
+        const toggledDesignation = await Designation.findByIdAndUpdate(
+            req.params.id,
+            { $set: { status: nextStatusState } },
+            { returnDocument: 'after' } // Returns the fresh updated state values instantly
+        );
+
+        res.status(200).json({ 
+            message: `Designation successfully toggled to ${nextStatusState} status.`, 
+            designation: toggledDesignation 
+        });
     } catch (error) {
-        res.status(500).json({ message: "Error removing designation data record", error: error.message });
+        res.status(500).json({ message: "Error changing designation status parameter", error: error.message });
     }
 };
-
 module.exports = {
     createDesignation,
     getAllDesignations,

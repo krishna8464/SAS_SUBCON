@@ -3,90 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAS_SUBCON - Login</title>
-    <!-- Links natively to your local style sheet -->
+    <title>SAS_SUBCON - Portal Authentication</title>
+    <!-- 1. Local Fallback Static Stylesheet Link -->
     <link rel="stylesheet" href="/css/style.css">
+    <!-- 2. Tailwind CSS Runtime Engine Script CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased m-0 p-0 flex flex-col justify-center items-center relative overflow-hidden" style="background-color: #0f172a !important;">
 
-    <div class="card">
+    <!-- Decorative Subtle Background Glow Elements -->
+    <div class="absolute top-[-20%] left-[-10%] w-[50rem] h-[50rem] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-[-20%] right-[-10%] w-[45rem] h-[45rem] rounded-full bg-blue-500/5 blur-[120px] pointer-events-none"></div>
+
+    <!-- MAIN CENTRALIZED LOGIN ARCHITECTURE ENVELOPE -->
+    <div class="w-full max-w-md p-4 z-10" style="display: block !important; box-sizing: border-box !important;">
         
-        <div class="brand">
-            <h2>SAS_SUBCON</h2>
-            <p>Subcontractor Verification Portal</p>
-        </div>
-
-        <!-- Alert Banner Box for API Responses -->
-        <div id="statusBox" class="status-box"></div>
-
-        <!-- Input Processing Form -->
-        <form id="loginForm">
-            <div class="input-group">
-                <label>Corporate Email</label>
-                <input type="email" id="email" required placeholder="username@sas-subcon.com">
+        <section class="bg-slate-950 border border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6 backdrop-blur-md" style="background-color: #020617 !important; border: 1px solid #1e293b !important; border-radius: 1.5rem !important;">
+            
+            <!-- Core Brand Indicia Header -->
+            <div class="text-center space-y-2" style="display: block !important;">
+                <h2 class="text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
+                    <span>SAS_SUBCON</span>
+                    <span class="text-[10px] bg-emerald-500/10 text-emerald-400 font-extrabold px-2 py-0.5 rounded-md border border-emerald-500/20 tracking-wider uppercase">Secure</span>
+                </h2>
+                <p class="text-xs text-slate-400 font-medium tracking-wide">Workforce Verification & Mobilization Portal</p>
             </div>
 
-            <div class="input-group">
-                <label>Password</label>
-                <input type="password" id="password" required placeholder="••••••••">
-            </div>
+            <!-- Dynamic Network Feedback Status Notice Container -->
+            <div id="statusBox" class="hidden p-4 rounded-xl text-xs font-bold uppercase tracking-wider border text-center transition-all duration-300"></div>
 
-            <button type="submit" class="submit-btn">Log In Securely</button>
-        </form>
+            <!-- Input Processing Processing Form Array Data Target -->
+            <form id="loginForm" class="space-y-4" style="display: flex !important; flex-direction: column !important; gap: 1rem !important;">
+                
+                <div style="display: block !important;">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Corporate Identity Email</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500 text-sm">📧</span>
+                        <input type="email" id="email" required 
+                            class="w-full bg-slate-900/50 border border-slate-700/60 rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition placeholder-slate-600 shadow-inner"
+                            placeholder="coordinator@company.com" style="box-sizing: border-box !important;">
+                    </div>
+                </div>
+
+                <div style="display: block !important;">
+                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Security Access Password</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-slate-500 text-sm">🔒</span>
+                        <input type="password" id="password" required 
+                            class="w-full bg-slate-900/50 border border-slate-700/60 rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition placeholder-slate-600 shadow-inner"
+                            placeholder="••••••••" style="box-sizing: border-box !important;">
+                    </div>
+                </div>
+
+                <div class="pt-2" style="display: block !important; width: 100% !important;">
+                    <button type="submit" 
+                        class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 px-4 rounded-xl text-xs uppercase tracking-widest transition-all duration-150 shadow-lg shadow-emerald-600/10 active:scale-[0.98]">
+                        Log In Securely
+                    </button>
+                </div>
+            </form>
+
+        </section>
+
+        <!-- Low-Profile System Footer Notice -->
+        <p class="text-center text-[10px] text-slate-500 font-bold tracking-wider uppercase mt-6">
+            SAS Corporate Logistics System Group &copy; 2026
+        </p>
+
     </div>
-
-    <!-- Frontend Script: Communicates directly with your backend routes and transmits data -->
+    <!-- Frontend Script Logic: Orchestrates secure session authentications -->
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (event) => {
-            event.preventDefault(); // Stop standard browser page refresh reload loops
+            event.preventDefault(); // Invalidate native standard webpage refresh loops
 
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const statusBox = document.getElementById('statusBox');
 
             try {
-                // Clear previous responses
-                statusBox.className = "status-box";
-                statusBox.style.display = "none";
+                // Clear previous network responses status indicators
+                statusBox.className = "hidden";
+                statusBox.innerText = "";
 
-                // YES! This will send data to your actual backend user login API endpoint
+                // Transmit secure validation payloads directly to your active backend routes
                 const apiCall = await fetch('/user/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password }) // Places form inputs into the request body
+                    body: JSON.stringify({ email, password })
                 });
 
                 const data = await apiCall.json();
 
+                // GATEWAY GUARD: Handle negative credential rejections cleanly
                 if (!apiCall.ok) {
-                    // Triggers if backend user_controller rejects credentials
-                    statusBox.innerText = data.message || "Authentication credentials failed.";
-                    statusBox.classList.add("status-error");
+                    statusBox.innerText = data.message || "Authentication credentials verification failed.";
+                    statusBox.className = "p-4 rounded-xl text-xs font-bold uppercase tracking-wider text-center block bg-rose-500/10 text-rose-400 border border-rose-500/20 mb-6";
                     return;
                 }
-                console.log("login successfull")
 
-                // SUCCESS: Save your session tracking token inside browser storage cache
+                // SECURE PAYLOAD STORAGE: Save token identities safely inside browser caching pools
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('role', data.user.role);
-                localStorage.setItem('userId', data.user.id);       // Saves their MongoDB User ID
-                localStorage.setItem('email', data.user.email);     // Saves their corporate email
-                localStorage.setItem('siteId', data.user.site_id || 'HO'); // Saves their physical Site ID (or 'HO' if Head Office)
+                localStorage.setItem('userId', data.user.id);       
+                localStorage.setItem('email', data.user.email);     
+                localStorage.setItem('siteId', data.user.site_id || 'HO'); 
                 localStorage.setItem('supplierId', data.user.supplier_id || 'NONE'); 
 
+                // Present success confirmation notice status change elements
+                statusBox.innerText = "Access Granted! Customizing Operational Desk...";
+                statusBox.className = "p-4 rounded-xl text-xs font-bold uppercase tracking-wider text-center block bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-6 shadow";
 
-                statusBox.innerText = "Identity verified! Routing to operations workspace...";
-                statusBox.classList.add("status-success");
-
-                // Route them to the dashboard layout page view after brief delay
+                // DYNAMIC ROLE GATE ROUTER: Evaluates account credentials and splits travel endpoints
                 setTimeout(() => {
-                    console.log("login successfull")
-                    window.location.href = "/site/manage-sites";
+                    if (data.user.role === 'SUPPLIER') {
+                        // Subcontractor entry launch workflow page path
+                        window.location.href = "/mobilization/portal"; 
+                    } else {
+                        // Internal back-office organizational operations deck cockpit
+                        window.location.href = "/site/manage-sites";
+                    }
                 }, 1200);
 
             } catch (err) {
-                statusBox.innerText = "Network transmission fault: " + err.message;
-                statusBox.classList.add("status-error");
+                statusBox.innerText = "Network pipeline connection exception: " + err.message;
+                statusBox.className = "p-4 rounded-xl text-xs font-bold uppercase tracking-wider text-center block bg-rose-500/10 text-rose-400 border border-rose-500/20 mb-6";
             }
         });
     </script>

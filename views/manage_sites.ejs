@@ -97,51 +97,74 @@
                 </form>
             </section>
 
-            <!-- RIGHT PANEL: Live Operational Hub Directory Table & Search Field Area -->
-           <section class="lg:col-span-2 space-y-4 flex flex-col min-h-[500px] h-auto bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl">
-                
-                <!-- Live Active Filter Search Bar -->
-                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl flex flex-col md:flex-row gap-3 items-center justify-between">
-                    <div class="relative w-full md:max-w-md">
-                        <input type="text" id="searchInput" 
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
-                            placeholder="Search by code, descriptive name, or region...">
-                        <span class="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
-                    </div>
-                    <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
-                        Active Deployment Locations: <span id="recordCount" class="text-emerald-400 font-black">0</span>
-                    </div>
-                </div>
+           <!-- RIGHT PANEL: Live Operational Hub Directory Table & Search Field Area -->
+            <section class="lg:col-span-2 space-y-4 flex flex-col min-h-[500px] h-auto bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl">
+     
+     <!-- Live Active Filter Search Bar -->
+     <div class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl" style="display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; flex-wrap: wrap !important;">
+    
+    <!-- 1. Left aligned search input field layout slot -->
+    <div class="relative w-full md:max-w-xs shrink-0" style="display: block !important; margin: 0 !important;">
+        <input type="text" id="searchInput" 
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+            placeholder="Search by code, descriptive name, or region...">
+        <span class="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
+    </div>
 
-                <!-- Dynamic Table Grid Output Content Layer Container -->
-                <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl flex-1 overflow-hidden flex flex-col">
-                    <div class="overflow-x-auto flex-1">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
-                            <thead>
-                                <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10">
-                                    <th class="px-6 py-4">Site Code</th>
-                                    <th class="px-6 py-4">Descriptive Name</th>
-                                    <th class="px-6 py-4">Oman Region / Location</th>
-                                    <th class="px-6 py-4">Status</th>
-                                    <th class="px-6 py-4 text-right">Actions Pipeline</th>
-                                </tr>
-                            </thead>
-                            <tbody id="siteTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
-                                <!-- Javascript data inject loop -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <!-- 2. Centered alignment for row tab segment buttons sliders switches -->
+    <div class="p-1 rounded-xl border border-slate-800 shrink-0 select-none bg-slate-900" style="display: flex !important; flex-direction: row !important; gap: 4px !important; margin: 0 !important;">
+        <button type="button" id="filterActiveBtn" onclick="setStatusFilter('Active')"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 bg-emerald-600 text-white shadow">
+            Active
+        </button>
+        <button type="button" id="filterInactiveBtn" onclick="setStatusFilter('Inactive')"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 text-slate-400 hover:text-slate-200">
+            Inactive
+        </button>
+    </div>
+
+    <!-- 3. Right aligned active records counter badge statistics card -->
+    <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 tracking-wide shrink-0" style="display: block !important; margin: 0 !important;">
+        Filtered Locations: <span id="recordCount" class="text-emerald-400 font-black">0</span>
+    </div>
+</div>
+
+     <!-- Dynamic Table Grid Output Content Layer Container -->
+     <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl flex-1 overflow-hidden flex flex-col">
+         <div class="overflow-x-auto flex-1">
+             <table class="w-full text-left border-collapse min-w-[600px]">
+                 <thead>
+                     <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                         <th class="px-6 py-4">Site Code</th>
+                         <th class="px-6 py-4">Descriptive Name</th>
+                         <th class="px-6 py-4">Oman Region / Location</th>
+                         <th class="px-6 py-4">Status</th>
+                         <th class="px-6 py-4 text-right">Actions Pipeline</th>
+                     </tr>
+                 </thead>
+                 <tbody id="siteTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
+                     <!-- Javascript data inject loop -->
+                 </tbody>
+             </table>
+         </div>
+     </div>
             </section>
+
         </main>
     </div> <!-- Closes global over-ride flex wrapper layout -->
     <!-- Script Pipeline: Fully handles data orchestration with your backend APIs -->
     <script>
         const token = localStorage.getItem('token');
         let allSites = [];
+        
+        // GLOBAL STATE TRACKER: Sets visibility defaults to Active rows upon load
+        let currentStatusFilter = 'Active';
 
-        if (!token) { window.location.href = "/user/login-page"; }
+        if (!token) { 
+            window.location.href = "/user/login-page"; 
+        }
 
+        // READ: Background data synchronization fetch query from your Express layer
         async function loadSites() {
             try {
                 const res = await fetch('/site/all', {
@@ -151,38 +174,103 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message);
                 allSites = data.sites || [];
-                renderTable(allSites);
-            } catch (err) { showAlert(err.message, 'error'); }
+                
+                // Fire unified filter mapping routines
+                applyGlobalFilters();
+            } catch (err) { 
+                showAlert(err.message, 'error'); 
+            }
         }
 
+        // UNIFIED FILTER DATA CORE: Cross-references search bars and tabs together cleanly
+        function applyGlobalFilters() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            const filteredDataset = allSites.filter(site => {
+                // Parameter Check A: Evaluates matching tab state segments (Active vs Inactive)
+                const matchesStatus = site.status === currentStatusFilter;
+                
+                // Parameter Check B: Evaluates matching search keywords inside strings
+                const matchesSearch = 
+                    site.site_code.toLowerCase().includes(searchVal) || 
+                    site.site_name.toLowerCase().includes(searchVal) || 
+                    site.location.toLowerCase().includes(searchVal);
+                
+                return matchesStatus && matchesSearch;
+            });
+
+            // Hand computed data array directly over to table renderer block
+            renderTable(filteredDataset);
+        }
+
+        // TAB SLIDER SLOTS: Toggles visual background class properties across your tab deck
+        function setStatusFilter(statusType) {
+            currentStatusFilter = statusType;
+            
+            const activeBtn = document.getElementById('filterActiveBtn');
+            const inactiveBtn = document.getElementById('filterInactiveBtn');
+
+            if (statusType === 'Active') {
+                activeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 bg-emerald-600 text-white shadow";
+                inactiveBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 text-slate-400 hover:text-slate-200";
+            } else {
+                activeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 text-slate-400 hover:text-slate-200";
+                inactiveBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 bg-rose-600 text-white shadow";
+            }
+
+            // Instantly repaint database rows to match selected tab
+            applyGlobalFilters();
+        }
+         // HTML GRAPHIC DATA MATRIX: Paints arrays directly into table rows
         function renderTable(arr) {
             const tbody = document.getElementById('siteTableBody');
+            
+            // Updates counter total badge dynamically matching data constraints
             document.getElementById('recordCount').innerText = arr.length;
             tbody.innerHTML = '';
 
             if (arr.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">No operational locations found matching requirements.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">No operational hubs found inside the selected layout channel profile parameters.</td></tr>`;
                 return;
             }
 
             arr.forEach(site => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition";
-                const badge = site.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400';
                 
+                const isSiteActive = site.status === 'Active';
+                const badgeStyleClass = isSiteActive 
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                
+                // DYNAMIC TEXT LABELS SWAP: Configures text and styling dynamically based on model indexes
+                const actionButtonText = isSiteActive ? 'Deactivate' : 'Activate';
+                const actionButtonColorClass = isSiteActive 
+                    ? 'bg-rose-600/10 text-rose-400 border border-rose-500/10 hover:bg-rose-600 hover:text-white' 
+                    : 'bg-emerald-600/10 text-emerald-400 border border-emerald-500/10 hover:bg-emerald-600 hover:text-white';
+
                 tr.innerHTML = `
                     <td class="px-6 py-4 font-black font-mono text-white tracking-wider">${site.site_code}</td>
                     <td class="px-6 py-4 font-bold text-slate-200">${site.site_name}</td>
                     <td class="px-6 py-4 text-slate-400">${site.location}</td>
-                    <td class="px-6 py-4"><span class="px-2 py-0.5 rounded border border-slate-800 text-[10px] font-bold uppercase ${badge}">${site.status}</span></td>
-                    <td class="px-6 py-4 text-right"><div class="flex justify-end gap-2">
-                        <button onclick="populateEdit('${site._id}')" class="bg-blue-600/10 text-blue-400 border border-blue-500/10 px-3 py-1.5 text-[11px] font-bold rounded-lg shadow-sm hover:bg-blue-600 hover:text-white transition">Edit</button>
-                        <button onclick="deactivateSite('${site._id}')" class="bg-rose-600/10 text-rose-400 border border-rose-500/10 px-3 py-1.5 text-[11px] font-bold rounded-lg shadow-sm hover:bg-rose-600 hover:text-white transition">Deactivate</button>
-                    </div></td>`;
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-0.5 rounded border border-slate-800 text-[10px] font-bold uppercase ${badgeStyleClass}">
+                            ${site.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="populateEdit('${site._id}')" class="bg-blue-600/10 text-blue-400 border border-blue-500/10 px-3 py-1.5 text-[11px] font-bold rounded-lg shadow-sm hover:bg-blue-600 hover:text-white transition">Edit</button>
+                            <button onclick="deactivateSite('${site._id}')" class="${actionButtonColorClass} px-3 py-1.5 text-[11px] font-bold rounded-lg shadow-sm transition">
+                                ${actionButtonText}
+                            </button>
+                        </div>
+                    </td>`;
                 tbody.appendChild(tr);
             });
         }
 
+        // CREATE & UPDATE: Dispatches database form data payloads directly to Express endpoints
         document.getElementById('siteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('siteId').value;
@@ -204,8 +292,7 @@
                 resetForm(); loadSites();
             } catch (err) { showAlert(err.message, 'error'); }
         });
-
-        function populateEdit(id) {
+         function populateEdit(id) {
             const site = allSites.find(s => s._id === id);
             if (!site) return;
             document.getElementById('siteId').value = site._id;
@@ -220,25 +307,22 @@
             document.getElementById('cancelEditBtn').classList.remove('hidden');
         }
 
+        // INTELLIGENT BINARY TOGGLE PIPELINE: Flips records between Active/Inactive states seamlessly
         async function deactivateSite(id) {
-            if (!confirm("Are you sure you want to change this operational hub deployment status to Inactive?")) return;
+            if (!confirm("Are you sure you want to alter this operational hub deployment status indicator?")) return;
             try {
                 const res = await fetch(`/site/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) { const data = await res.json(); throw new Error(data.message); }
-                showAlert("Operational hub profile flagged as Inactive status.", 'success'); loadSites();
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                showAlert(data.message || "Status execution successfully completed.", 'success'); 
+                loadSites(); // Re-sync data entries
             } catch (err) { showAlert(err.message, 'error'); }
         }
 
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase().trim();
-            const filtered = allSites.filter(s => 
-                s.site_code.toLowerCase().includes(val) || 
-                s.site_name.toLowerCase().includes(val) || 
-                s.location.toLowerCase().includes(val)
-            );
-            renderTable(filtered);
-        });
+        // Binds text inputs dynamically down to the master core pipeline calculations
+        document.getElementById('searchInput').addEventListener('input', applyGlobalFilters);
 
+        // FORM SANITIZER UTILITIES
         function resetForm() {
             document.getElementById('siteForm').reset();
             document.getElementById('siteId').value = "";
@@ -257,6 +341,7 @@
             setTimeout(() => sb.className = "hidden", 4000);
         }
 
+        // Initialize script metrics on DOM construction initialization
         loadSites();
     </script>
 </body>

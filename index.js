@@ -4,6 +4,8 @@ const { Userroute } = require("./routes/user_route");
 const { Siteroute } = require("./routes/sites_route");
 const { Supplierroute } = require("./routes/suppliers_route");
 const { Designationroute } = require("./routes/designation_route");
+const { Mobilizationroute } = require("./routes/mobilization_route");
+const { AdminReviewRoute } = require("./routes/admin_review_route");
 
 require("dotenv").config();
 const cors = require("cors");
@@ -33,6 +35,8 @@ app.use("/user",Userroute);
 app.use("/site", Siteroute);
 app.use("/supplier", Supplierroute);
 app.use("/designation", Designationroute);
+app.use("/mobilization", Mobilizationroute);
+app.use("/admin-review", AdminReviewRoute);
 
 // Handle invalid routes
 app.use(logger,(req, res) => {

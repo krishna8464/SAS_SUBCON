@@ -120,23 +120,34 @@ const updateSupplier = async (req, res) => {
 };
 
 // 5. SUSPEND / DEACTIVATE SUPPLIER (Soft Delete)
+// 5. INTELLIGENT BINARY STATUS TOGGLE ENGINE (Fixed Activation Loop Bug)
 const deleteSupplier = async (req, res) => {
     try {
-        const suspendedSupplier = await Supplier.findByIdAndUpdate(
-            req.params.id,
-            { $set: { status: "Inactive" } },
-            { new: true }
-        );
-
-        if (!suspendedSupplier) {
-            return res.status(404).json({ message: "Supplier records not found" });
+        // 1. Fetch the target subcontractor profile to check its current database state
+        const targetSupplier = await Supplier.findById(req.params.id);
+        if (!targetSupplier) {
+            return res.status(404).json({ message: "Supplier company records not found." });
         }
 
-        res.status(200).json({ message: "Supplier company has been set to Inactive status", supplier: suspendedSupplier });
+        // 2. Compute the exact opposite state dynamically
+        const nextStatusState = targetSupplier.status === "Active" ? "Inactive" : "Active";
+
+        // 3. Update the record with the dynamic value using returnDocument: 'after'
+        const toggledSupplier = await Supplier.findByIdAndUpdate(
+            req.params.id,
+            { $set: { status: nextStatusState } },
+            { returnDocument: 'after' } // Returns the fresh updated values instantly
+        );
+
+        res.status(200).json({ 
+            message: `Supplier successfully set to ${nextStatusState} status.`, 
+            supplier: toggledSupplier 
+        });
     } catch (error) {
-        res.status(500).json({ message: "Error changing supplier status", error: error.message });
+        res.status(500).json({ message: "Error changing supplier status parameter", error: error.message });
     }
 };
+
 
 module.exports = {
     createSupplier,

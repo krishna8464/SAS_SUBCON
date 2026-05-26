@@ -4,134 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS_SUBCON - Supplier Management</title>
-    <!-- Tailwind CSS Engine -->
-    <script src="https://tailwindcss.com"></script>
+    <!-- 1. Local Fallback Static Stylesheet Link -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- 2. CORRECTED Tailwind CSS Runtime Engine Script CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased">
 
-    <!-- Top Navigation Header -->
-    <header class="bg-slate-950 border-b border-slate-800 sticky top-0 z-50 px-6 py-4 flex justify-between items-center shadow-lg">
-        <div>
-            <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                <span>SAS_SUBCON</span>
-                <span class="text-xs bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-500/30">HQ Portal</span>
-            </h1>
-            <p class="text-xs text-slate-400 font-medium mt-0.5">Corporate Subcontractor Registry</p>
-        </div>
-        <a href="/user/dashboard-view" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700">
-            Back to Dashboard
-        </a>
-    </header>
+    <!-- OVER-RIDE WRAPPER: Forces everything to flow top-to-bottom layout -->
+    <div class="flex flex-col w-full min-h-screen items-stretch justify-start">
 
-    <!-- Main Container Grid -->
-    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Status Notification Box -->
-        <div id="statusBox" class="hidden lg:col-span-3 p-4 rounded-xl text-sm font-semibold border text-center transition-all duration-300"></div>
-        <!-- LEFT PANEL: Registration Form -->
-        <section class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl h-fit">
-            <div class="mb-5">
-                <h3 id="formTitle" class="text-lg font-black text-white flex items-center gap-2">🤝 Register Subcontractor</h3>
-                <p class="text-xs text-slate-400 mt-1">Add or modify operational company registry indicators.</p>
+        <!-- Top Navigation Header: Spans 100% of top screen width -->
+        <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-lg w-full shrink-0">
+            <div>
+                <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                    <span>SAS_SUBCON</span>
+                    <span class="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/30">Hub Portal</span>
+                </h1>
+                <p class="text-xs text-slate-400 font-medium mt-0.5">Corporate Subcontractor Registry</p>
             </div>
+            <a href="/user/dashboard-view" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700">
+                Back to Dashboard
+            </a>
+        </header>
 
-            <form id="supplierForm" class="space-y-4">
-                <!-- Hidden parameter to hold identification string during updates -->
-                <input type="hidden" id="supplierId" value="">
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Company Name</label>
-                    <input type="text" id="supplierName" required 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                        placeholder="e.g., Hima Services">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Oman CR Number</label>
-                    <input type="text" id="crNumber" required 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800"
-                        placeholder="e.g., 1092834">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Corporate Email</label>
-                    <input type="email" id="contactEmail" required 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                        placeholder="coordinator@company.com">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Contact Phone Number</label>
-                    <input type="text" id="contactPhone" required 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                        placeholder="e.g., +96899334455">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Framework Status</label>
-                    <select id="status" 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="submit" id="submitBtn" 
-                        class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-blue-600/10">
-                        Save Supplier
-                    </button>
-                    <button type="button" id="cancelEditBtn" 
-                        class="hidden bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition border border-slate-700">
-                        Cancel
-                    </button>
-                </div>
-            </form>
-        </section>
-        <!-- RIGHT PANEL: Directory Table Layout & Search Engine Area -->
-        <section class="lg:col-span-2 space-y-4 flex flex-col h-[calc(100vh-140px)]">
+        <!-- Main Content Area: Aligns Form and Table Side-by-Side underneath header -->
+        <main class="max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 bg-slate-900">
             
-            <!-- Filter Search Bar -->
-            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl flex flex-col md:flex-row gap-3 items-center justify-between">
-                <div class="relative w-full md:max-w-md">
-                    <input type="text" id="searchInput" 
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                        placeholder="Search by company name, CR, email...">
-                    <span class="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
-                </div>
-                <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
-                    Total Registered Enclaves: <span id="recordCount" class="text-blue-400 font-black">0</span>
-                </div>
+            <!-- Status Notification Alert Banner -->
+            <div id="statusBox" class="hidden lg:col-span-3 p-4 rounded-xl text-sm font-semibold border text-center transition-all duration-300"></div>
+            
+            <!-- LEFT PANEL: Dynamic Subcontractor Input Form Card (1 Column Grid Span) -->
+            <div class="lg:col-span-1">
+                <section class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
+                    <div class="mb-5">
+                        <h3 id="formTitle" class="text-lg font-black text-white flex items-center gap-2">🤝 Register Subcontractor</h3>
+                        <p class="text-xs text-slate-400 mt-1">Add or modify operational company registry indicators.</p>
+                    </div>
+
+                    <form id="supplierForm" class="space-y-4">
+                        <input type="hidden" id="supplierId" value="">
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Company Profile Name</label>
+                            <input type="text" id="supplierName" required 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                                placeholder="e.g., Hima Services">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Oman CR Number</label>
+                            <input type="text" id="crNumber" required 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800"
+                                placeholder="e.g., 1092834">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Corporate Email Hub</label>
+                            <input type="email" id="contactEmail" required 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                                placeholder="coordinator@company.com">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Contact Phone Number</label>
+                            <input type="text" id="contactPhone" required 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+                                placeholder="e.g., +96899334455">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Framework Status</label>
+                            <select id="status" 
+                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col gap-2 pt-2">
+                            <button type="submit" id="submitBtn" 
+                                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99]">
+                                Save Supplier
+                            </button>
+                            <button type="button" id="cancelEditBtn" 
+                                class="hidden w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition border border-slate-700">
+                                Cancel Modification
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            </div>
+            <!-- RIGHT PANEL: Live Subcontractor Directory Table & Search Field Area (2 Columns Grid Span) -->
+            <div class="lg:col-span-2 space-y-4">
+                <section class="space-y-4 flex flex-col bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl w-full">
+                     
+                     <!-- Live Active Filter Search Bar Layout Wrapper -->
+                     <div class="w-full bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl flex flex-row items-center justify-between gap-4 flex-wrap" style="display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important;">
+    
+    <!-- 1. Left aligned text field layout search input slot -->
+    <div class="relative w-full md:max-w-xs shrink-0" style="display: block !important;">
+        <input type="text" id="searchInput" 
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
+            placeholder="Search by company name, CR, email...">
+        <span class="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
+    </div>
+
+    <!-- 2. Centered alignment for row tab selector sliders switches -->
+    <div class="flex p-1 rounded-xl border border-slate-800 shrink-0 select-none bg-slate-900" style="display: flex !important; flex-direction: row !important;">
+        <button type="button" id="filterActiveBtn" onclick="setStatusFilter('Active')"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 bg-emerald-600 text-white shadow">
+            Active
+        </button>
+        <button type="button" id="filterInactiveBtn" onclick="setStatusFilter('Inactive')"
+            class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 text-slate-400 hover:text-slate-200">
+            Inactive
+        </button>
+    </div>
+
+    <!-- 3. Right aligned active records counter statistics card badge -->
+    <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 tracking-wide shrink-0" style="display: block !important;">
+        Filtered Suppliers: <span id="recordCount" class="text-emerald-400 font-black">0</span>
+    </div>
+</div>
+
+                     <!-- Dynamic Table Container Layer -->
+                     <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col w-full">
+                         <div class="overflow-x-auto">
+                             <table class="w-full text-left border-collapse min-w-[600px]">
+                                 <thead>
+                                     <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                                         <th class="px-6 py-4">Company Profile</th>
+                                         <th class="px-6 py-4">CR Number</th>
+                                         <th class="px-6 py-4">Communications Hub</th>
+                                         <th class="px-6 py-4">Status</th>
+                                         <th class="px-6 py-4 text-right">Actions Pipeline</th>
+                                     </tr>
+                                 </thead>
+                                 <tbody id="supplierTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
+                                     <!-- Dynamic JavaScript data entry rows target -->
+                                 </tbody>
+                             </table>
+                         </div>
+                     </div>
+                </section>
             </div>
 
-            <!-- Table Container Layer -->
-            <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl flex-1 overflow-hidden flex flex-col">
-                <div class="overflow-x-auto flex-1">
-                    <table class="w-full text-left border-collapse min-w-[600px]">
-                        <thead>
-                            <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10">
-                                <th class="px-6 py-4">Company Profile</th>
-                                <th class="px-6 py-4">CR Number</th>
-                                <th class="px-6 py-4">Communications</th>
-                                <th class="px-6 py-4">Status</th>
-                                <th class="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="supplierTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
-                            <!-- Dynamic Content Rows Go Here -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </main>
+        </main>
+    </div> <!-- Closes global flex wrapper layout -->
     <script>
         const token = localStorage.getItem('token');
         let allSuppliers = [];
+        let currentStatusFilter = 'Active';
 
         if (!token) { window.location.href = "/user/login-page"; }
 
-        // READ operation data loop
         async function loadSuppliers() {
             try {
                 const res = await fetch('/supplier/all', {
@@ -141,39 +179,89 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message);
                 allSuppliers = data.suppliers || [];
-                renderTable(allSuppliers);
+                applyGlobalFilters();
             } catch (err) { showAlert(err.message, 'error'); }
         }
 
-        // Table Builder rendering routine engine
+        function applyGlobalFilters() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filteredDataset = allSuppliers.filter(sup => {
+                const matchesStatus = sup.status === currentStatusFilter;
+                const matchesSearch = 
+                    sup.supplier_name.toLowerCase().includes(searchVal) || 
+                    sup.cr_number.includes(searchVal) || 
+                    sup.contact_email.toLowerCase().includes(searchVal) ||
+                    sup.contact_phone.includes(searchVal);
+                return matchesStatus && matchesSearch;
+            });
+            renderTable(filteredDataset);
+        }
+
+        function setStatusFilter(statusType) {
+            currentStatusFilter = statusType;
+            const activeBtn = document.getElementById('filterActiveBtn');
+            const inactiveBtn = document.getElementById('filterInactiveBtn');
+
+            if (statusType === 'Active') {
+                activeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 bg-emerald-600 text-white shadow";
+                inactiveBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 text-slate-400 hover:text-slate-200";
+            } else {
+                activeBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 text-slate-400 hover:text-slate-200";
+                inactiveBtn.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-150 bg-rose-600 text-white shadow";
+            }
+            applyGlobalFilters();
+        }
+
+        // FIXED ROW RENDER MATRIX: Uses exact matching inline utility classes as your site page
         function renderTable(arr) {
             const tbody = document.getElementById('supplierTableBody');
             document.getElementById('recordCount').innerText = arr.length;
             tbody.innerHTML = '';
 
             if (arr.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">No subcontractor records found.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500 italic">No subcontractor records found matching current filtering parameters.</td></tr>`;
                 return;
             }
 
             arr.forEach(sup => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs";
-                const badge = sup.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400';
+                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition";
+                
+                const isSupActive = sup.status === 'Active';
+                const badgeStyleClass = isSupActive 
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                
+                const actionButtonText = isSupActive ? 'Deactivate' : 'Activate';
+                const actionButtonColorClass = isSupActive 
+                    ? 'bg-rose-600/10 text-rose-400 border border-rose-500/10 hover:bg-rose-600 hover:text-white' 
+                    : 'bg-emerald-600/10 text-emerald-400 border border-emerald-500/10 hover:bg-emerald-600 hover:text-white';
+
+                // Explicit inline Tailwind classes applied to row nodes
                 tr.innerHTML = `
-                    <td class="px-6 py-4 font-bold text-white">${sup.supplier_name}</td>
-                    <td class="px-6 py-4 font-mono">${sup.cr_number}</td>
-                    <td class="px-6 py-4"><div>${sup.contact_email}</div><div class="text-slate-500 mt-0.5">${sup.contact_phone}</div></td>
-                    <td class="px-6 py-4"><span class="px-2 py-0.5 rounded border border-slate-800 text-[10px] font-bold uppercase ${badge}">${sup.status}</span></td>
-                    <td class="px-6 py-4 text-right"><div class="flex justify-end gap-2">
-                        <button onclick="populateEdit('${sup._id}')" class="bg-blue-600/10 text-blue-400 px-3 py-1 rounded shadow-sm hover:bg-blue-600 hover:text-white transition">Edit</button>
-                        <button onclick="deactivateSupplier('${sup._id}')" class="bg-rose-600/10 text-rose-400 px-3 py-1 shadow-sm hover:bg-rose-600 hover:text-white transition">Suspend</button>
-                    </div></td>`;
+                    <td class="px-6 py-4 font-bold text-white tracking-tight">${sup.supplier_name}</td>
+                    <td class="px-6 py-4 font-mono text-slate-300">${sup.cr_number}</td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs text-slate-200">${sup.contact_email}</div>
+                        <div class="text-[11px] text-slate-500 font-bold mt-0.5">${sup.contact_phone}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-0.5 rounded border border-slate-800 text-[10px] font-bold uppercase ${badgeStyleClass}">
+                            ${sup.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="populateEdit('${sup._id}')" class="bg-blue-600/10 text-blue-400 border border-blue-500/10 px-3 py-1.5 text-[11px] font-bold rounded-lg shadow-sm hover:bg-blue-600 hover:text-white transition">Edit</button>
+                            <button onclick="deactivateSupplier('${sup._id}')" class="${actionButtonColorClass} px-3 py-1.5 text-[11px] font-bold rounded-lg shadow-sm transition">
+                                ${actionButtonText}
+                            </button>
+                        </div>
+                    </td>`;
                 tbody.appendChild(tr);
             });
         }
 
-        // CREATE & UPDATE execution pipeline channel handlers
         document.getElementById('supplierForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('supplierId').value;
@@ -192,7 +280,7 @@
                     body: JSON.stringify(payload)
                 });
                 if (!res.ok) { const data = await res.json(); throw new Error(data.message); }
-                showAlert(isEdit ? "Profile updated!" : "Supplier created!", 'success');
+                showAlert(isEdit ? "Profile updated successfully!" : "Supplier company registered successfully!", 'success');
                 resetForm(); loadSuppliers();
             } catch (err) { showAlert(err.message, 'error'); }
         });
@@ -207,25 +295,25 @@
             document.getElementById('contactEmail').value = sup.contact_email;
             document.getElementById('contactPhone').value = sup.contact_phone;
             document.getElementById('status').value = sup.status;
+            
             document.getElementById('formTitle').innerText = "✏️ Modify Corporate Profile";
             document.getElementById('submitBtn').innerText = "Update Profile";
+            document.getElementById('submitBtn').className = "flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition";
             document.getElementById('cancelEditBtn').classList.remove('hidden');
         }
 
         async function deactivateSupplier(id) {
-            if (!confirm("Deactivate this subcontractor profile?")) return;
+            if (!confirm("Are you sure you want to alter this contractor operational profile status indicator?")) return;
             try {
                 const res = await fetch(`/supplier/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) { const data = await res.json(); throw new Error(data.message); }
-                showAlert("Profile deactivated", 'success'); loadSuppliers();
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                showAlert(data.message || "Status altered successfully.", 'success'); 
+                loadSuppliers();
             } catch (err) { showAlert(err.message, 'error'); }
         }
 
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase().trim();
-            const filtered = allSuppliers.filter(s => s.supplier_name.toLowerCase().includes(val) || s.cr_number.includes(val) || s.contact_email.toLowerCase().includes(val));
-            renderTable(filtered);
-        });
+        document.getElementById('searchInput').addEventListener('input', applyGlobalFilters);
 
         function resetForm() {
             document.getElementById('supplierForm').reset();
@@ -233,9 +321,9 @@
             document.getElementById('crNumber').disabled = false;
             document.getElementById('formTitle').innerText = "🤝 Register Subcontractor";
             document.getElementById('submitBtn').innerText = "Save Supplier";
+            document.getElementById('submitBtn').className = "flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10";
             document.getElementById('cancelEditBtn').classList.add('hidden');
         }
-
         document.getElementById('cancelEditBtn').addEventListener('click', resetForm);
 
         function showAlert(msg, type) {

@@ -119,23 +119,34 @@ const updateSite = async (req, res) => {
 };
 
 // 5. SOFT-DELETE SITE (Toggles status to Inactive to preserve audit integrity)
+// 5. INTELLIGENT TOGGLE SITE STATUS (Fixed Double-Click Toggle Bug)
 const deleteSite = async (req, res) => {
     try {
-        const deactivatedSite = await Site.findByIdAndUpdate(
-            req.params.id,
-            { $set: { status: "Inactive" } },
-            { returnDocument: 'after' } // Modified here
-        );
-
-        if (!deactivatedSite) {
-            return res.status(404).json({ message: "Site not found" });
+        // 1. Fetch the target site profile first to assess its current state value
+        const targetSite = await Site.findById(req.params.id);
+        if (!targetSite) {
+            return res.status(404).json({ message: "Operational site profile not found." });
         }
 
-        res.status(200).json({ message: "Site deactivated successfully", site: deactivatedSite });
+        // 2. Compute the exact opposite binary state value toggle parameter
+        const nextStatusState = targetSite.status === "Active" ? "Inactive" : "Active";
+
+        // 3. Execute the single-run modification swap block using the new returnDocument standard
+        const toggledSite = await Site.findByIdAndUpdate(
+            req.params.id,
+            { $set: { status: nextStatusState } },
+            { returnDocument: 'after' } // Returns the brand new updated document state variables instantly
+        );
+
+        res.status(200).json({ 
+            message: `Site successfully flipped to ${nextStatusState} status.`, 
+            site: toggledSite 
+        });
     } catch (error) {
-        res.status(500).json({ message: "Error removing site", error: error.message });
+        res.status(500).json({ message: "Error changing site operational indicator state", error: error.message });
     }
 };
+
 
 module.exports = {
     createSite,
