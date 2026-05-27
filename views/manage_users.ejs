@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS_SUBCON - Identity Access Directory</title>
+    <!-- Tailwind CSS Runtime CDN Engine Wrapper -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+        }
+    </script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased m-0 p-0">
+
+    <!-- UNIFIED FLOATING OVERLAY TOAST NOTICE CONTAINER -->
+    <div id="statusBox" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-50 p-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-2xl border transition-all duration-300 transform scale-95 opacity-0" style="min-width: 22rem; pointer-events: none;"></div>
+
+    <!-- Master Application View Stack Header Layout Panel Row -->
+    <div class="flex flex-col w-full min-h-screen items-stretch justify-start">
+        <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 shadow-lg w-full shrink-0">
+            <div class="max-w-7xl mx-auto flex justify-between items-center w-full">
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                        <span>SAS_SUBCON</span>
+                        <span class="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/30">System Admin</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">Identity & Access Management (IAM) Identity Directory</p>
+                </div>
+                <button onclick="handleSystemLogout()" class="bg-slate-800 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700 shadow-md active:scale-[0.98]">
+                    Disconnect Session
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT MATRIX COMPONENT SECTION -->
+        <main class="flex-1 w-full max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- LEFT PANEL: REGISTER USER CONTEXT CARD COMPONENT -->
+            <section class="lg:col-span-4 bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                <div class="mb-4">
+                    <h3 class="text-lg font-black text-white flex items-center gap-2">🔑 Provision Account</h3>
+                    <p class="text-xs text-slate-400 mt-1">Register corporate credentials, authorize system privileges, and link operations scopes.</p>
+                </div>
+
+                <form id="userProvisionForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Personnel Name</label>
+                        <input type="text" id="name" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="e.g. Salim Al Rahbi">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Corporate Email Address</label>
+                        <input type="email" id="email" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="username@company.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Security Password</label>
+                        <input type="password" id="password" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="••••••••">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">GSM Contact Cell Number</label>
+                        <input type="text" id="cell_number" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="e.g. 99445566">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Privilege Operational Role</label>
+                        <select id="role" required onchange="handleRoleContextShifting()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                            <option value="" disabled selected>Select Authorization Role...</option>
+                            <option value="HO">🏢 HO (Head Office Operations)</option>
+                            <option value="SITE_HSE">🛡️ SITE_HSE (Safety Clearance Team)</option>
+                            <option value="SITE_MEDIC">🩺 SITE_MEDIC (Medical Clearance Team)</option>
+                            <option value="SITE_MANAGER">🫅 SITE_MANAGER (Site Admin Checker)</option>
+                            <option value="SUPPLIER">🏭 SUPPLIER (Subcontractor Coordinator)</option>
+                            <option value="ERP_TEAM">💻 ERP_TEAM (Core Audit Administrator)</option>
+                        </select>
+                    </div>
+                    <!-- DYNAMIC SITE ALLOCATION WRAPPER (Hidden by default) -->
+                    <div id="site_allocation_wrapper" style="display: none;">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1.5">Assigned Target Camp Site</label>
+                        <select id="site_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                            <option value="" disabled selected>Select Camp Location...</option>
+                        </select>
+                    </div>
+
+                    <!-- DYNAMIC SUPPLIER ALLOCATION WRAPPER (Hidden by default) -->
+                    <div id="supplier_allocation_wrapper" style="display: none;">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">Linked Supplier Corporate Tenant</label>
+                        <select id="supplier_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-amber-500 outline-none transition">
+                            <option value="" disabled selected>Select Supplier Firm...</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99]">
+                            Provision User Account
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- RIGHT PANEL: HORIZONTAL SEARCH AND SYSTEM DATA GRIDS DIRECTORY -->
+            <section class="lg:col-span-8 space-y-4 flex flex-col items-stretch w-full h-full">
+                
+                <!-- FIXED HORIZONTAL FILTER BAR DECK (CRASH INLINE OVERRIDES APPLIED) -->
+                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl w-full" style="display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; flex-wrap: wrap !important;">
+                    <div class="relative w-full md:max-w-xs shrink-0" style="display: block !important; margin: 0 !important; max-width: 18rem !important; width: 100% !important;">
+                        <input type="text" id="searchInput" oninput="applyDirectoryFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="Search users by name, email, role...">
+                        <span class="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
+                    </div>
+
+                    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 shrink-0 select-none" style="display: flex !important; flex-direction: row !important; gap: 4px !important; margin: 0 !important; align-items: center !important;">
+                        <button type="button" id="tabAllBtn" onclick="setUserStatusTabFilter('ALL')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition bg-emerald-600 text-white shadow border-none">All Accounts</button>
+                        <button type="button" id="tabActiveBtn" onclick="setUserStatusTabFilter('Active')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">Active</button>
+                        <button type="button" id="tabInactiveBtn" onclick="setUserStatusTabFilter('Inactive')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">Suspended</button>
+                    </div>
+
+                    <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 tracking-wide shrink-0" style="display: block !important; margin: 0 !important;">
+                        Users Count: <span id="recordCount" class="text-emerald-400 font-black">0</span>
+                    </div>
+                </div>
+
+                <!-- MASTER DATA TABLE CONTAINER -->
+                <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col w-full">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse min-w-[700px]">
+                            <thead>
+                                <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                    <th class="px-5 py-4">User Profile</th>
+                                    <th class="px-5 py-4">Operational Privileges</th>
+                                    <th class="px-5 py-4">Assigned Allocation</th>
+                                    <th class="px-5 py-4">System Switch</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
+                                <!-- JavaScript paint loop row target -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <!-- Master Execution Script: Orchestrates IAM data transaction pipelines -->
+    <script>
+        const token = localStorage.getItem('token');
+        let masterUsersDataset = [];
+        let currentStatusFilter = 'ALL';
+
+        // Security session perimeter validation gate check
+        if (!token) { window.location.href = "/user/login-page"; }
+
+        // CONTEXT-SHIFTING CONTROLLER: Toggle layout visibility matching role selections
+        function handleRoleContextShifting() {
+            const role = document.getElementById('role').value;
+            const siteWrapper = document.getElementById('site_allocation_wrapper');
+            const subWrapper = document.getElementById('supplier_allocation_wrapper');
+            const siteInput = document.getElementById('site_id');
+            const subInput = document.getElementById('supplier_id');
+
+            siteInput.required = false;
+            subInput.required = false;
+
+            if (role === 'SUPPLIER') {
+                siteWrapper.style.display = 'none';
+                subWrapper.style.display = 'block';
+                subInput.required = true;
+            } else if (['SITE_HSE', 'SITE_MEDIC', 'SITE_MANAGER'].includes(role)) {
+                siteWrapper.style.display = 'block';
+                subWrapper.style.display = 'none';
+                siteInput.required = true;
+            } else {
+                siteWrapper.style.display = 'none';
+                subWrapper.style.display = 'none';
+            }
+        }
+
+        // DEPENDENCY INJECTORS: Fetches plural collections and populates select tags natively
+        async function fetchSitesDropdownCatalog() {
+            const selector = document.getElementById('site_id');
+            if (!selector) return;
+            try {
+                const res = await fetch('/site/all', { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const arraySource = data.sites || [];
+                selector.innerHTML = '<option value="" disabled selected>Select Camp Location...</option>';
+                arraySource.forEach(site => {
+                    if (site.status !== 'Inactive') {
+                        const opt = document.createElement('option');
+                        opt.value = site._id;
+                        opt.innerText = `📍 ${site.site_name.toUpperCase()} [${site.location}]`;
+                        selector.appendChild(opt);
+                    }
+                });
+            } catch (err) { console.error("Error populating camp selectors:", err.message); }
+        }
+
+        async function fetchSuppliersDropdownCatalog() {
+            const selector = document.getElementById('supplier_id');
+            if (!selector) return;
+            try {
+                const res = await fetch('/supplier/all', { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const arraySource = data.suppliers || [];
+                selector.innerHTML = '<option value="" disabled selected>Select Supplier Firm...</option>';
+                arraySource.forEach(sup => {
+                    if (sup.status !== 'Inactive') {
+                        const opt = document.createElement('option');
+                        opt.value = sup._id;
+                        opt.innerText = `🏭 ${sup.supplier_name.toUpperCase()}`;
+                        selector.appendChild(opt);
+                    }
+                });
+            } catch (err) { console.error("Error populating supplier selectors:", err.message); }
+        }
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // READ/WRITE TRANSACTIONS DIRECTORY CHANNELS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        async function loadMasterUsersDirectory() {
+            try {
+                const res = await fetch('/user/all', { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                masterUsersDataset = data.users || [];
+                applyDirectoryFilters();
+            } catch (err) { showAlert(err.message, "error"); }
+        }
+
+        document.getElementById('userProvisionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value,
+                cell_number: document.getElementById('cell_number').value,
+                site_id: document.getElementById('site_id').value || "",
+                supplier_id: document.getElementById('supplier_id').value || ""
+            };
+
+            try {
+                const res = await fetch('/user/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+
+                showAlert("Personnel identity credentials provisioned successfully into core indexes!", "success");
+                document.getElementById('userProvisionForm').reset();
+                handleRoleContextShifting();
+                loadMasterUsersDirectory();
+            } catch (err) { showAlert(err.message, "error"); }
+        });
+
+        async function toggleAccountOperationalState(id) {
+            try {
+                const res = await fetch(`/user/toggle-status/${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+
+                showAlert("User system access rules updated successfully!", "success");
+                loadMasterUsersDirectory();
+            } catch (err) { showAlert(err.message, "error"); }
+        }
+
+        // FILTERING & TAB NAVIGATION BAR HANDLERS
+        function applyDirectoryFilters() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = masterUsersDataset.filter(user => {
+                const normalizedStatus = (user.status || 'Active').trim();
+                const tabMatch = (currentStatusFilter === 'ALL') || (normalizedStatus === currentStatusFilter);
+                
+                const searchMatch = 
+                    user.name.toLowerCase().includes(searchVal) ||
+                    user.email.toLowerCase().includes(searchVal) ||
+                    user.role.toLowerCase().includes(searchVal) ||
+                    user.cell_number.includes(searchVal);
+
+                return tabMatch && searchMatch;
+            });
+
+            renderUserGridTable(filtered);
+        }
+
+        function setUserStatusTabFilter(stateType) {
+            currentStatusFilter = stateType;
+            const tAll = document.getElementById('tabAllBtn');
+            const tAct = document.getElementById('tabActiveBtn');
+            const tIna = document.getElementById('tabInactiveBtn');
+
+            if (tAll) tAll.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (stateType === 'ALL' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tAct) tAct.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (stateType === 'Active' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tIna) tIna.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (stateType === 'Inactive' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+
+            applyDirectoryFilters();
+        }
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DOM RENDERING ENGINE: DRAW DATA TABLE ROW NODES WITH ACTIONABLE TRIGGERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function renderUserGridTable(arr) {
+            const tbody = document.getElementById('userTableBody');
+            document.getElementById('recordCount').innerText = arr.length;
+            tbody.innerHTML = '';
+
+            if (arr.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-12 text-center text-slate-500 italic text-xs">No personnel identity profiles found matching active search properties.</td></tr>`;
+                return;
+            }
+
+            arr.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition";
+
+                // Resolve relational joins safely
+                let allocationText = `<span class="text-slate-500 italic font-medium">Global Corporate Scope</span>`;
+                if (user.role === 'SUPPLIER' && user.supplier_id) {
+                    allocationText = `🏭 <span class="font-bold text-slate-300 capitalize">${user.supplier_id.supplier_name}</span>`;
+                } else if (user.site_id) {
+                    allocationText = `📍 <span class="font-bold text-slate-300 capitalize">${user.site_id.site_name}</span> <span class="text-slate-500">(${user.site_id.location})</span>`;
+                }
+
+                // 🌟 CORRECTION FIXED: Inverts the button markup to show actionable triggers instead of static status!
+                let toggleBtnMarkup = '';
+                if (user.status === 'Active') {
+                    // Account is open -> show a red "SUSPEND" action layout option button trigger
+                    toggleBtnMarkup = `<button onclick="toggleAccountOperationalState('${user._id}')" class="bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-wider text-[10px] transition border-none shadow-sm active:scale-95">Suspend</button>`;
+                } else {
+                    // Account is blocked -> show a green "ACTIVATE" action layout option button trigger
+                    toggleBtnMarkup = `<button onclick="toggleAccountOperationalState('${user._id}')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-wider text-[10px] transition border-none shadow-sm active:scale-95">Activate</button>`;
+                }
+
+                // Generate clean visual badge markers for your information profile column status tracking card row
+                const statusMarkerBadge = user.status === 'Active'
+                    ? `<span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">Online</span>`
+                    : `<span class="text-[9px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">Suspended</span>`;
+
+                tr.innerHTML = `
+                    <td class="px-5 py-4">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div class="font-black text-white text-xs uppercase tracking-wide">${user.name}</div>
+                            ${statusMarkerBadge}
+                        </div>
+                        <div class="font-mono text-[10px] text-slate-500 font-medium mt-0.5">${user.email}</div>
+                    </td>
+                    <td class="px-5 py-4">
+                        <span class="px-2 py-0.5 rounded border text-[10px] font-extrabold uppercase bg-slate-900 text-slate-300 border-slate-800 tracking-wider">${user.role}</span>
+                        <div class="text-[10px] text-slate-500 font-mono mt-1 font-bold">📲 GSM: ${user.cell_number}</div>
+                    </td>
+                    <td class="px-5 py-4 text-xs font-semibold">${allocationText}</td>
+                    <td class="px-5 py-4">${toggleBtnMarkup}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+
+        // UNIVERSAL POPUP TOAST SYSTEM & DEACTIVATION CONTROLS
+        function showAlert(msg, type) {
+            const sb = document.getElementById('statusBox'); if (!sb) return;
+            sb.innerText = msg;
+            if (type === 'success') {
+                sb.style.backgroundColor = '#020617'; sb.style.color = '#34d399'; sb.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                sb.style.boxShadow = '0 20px 25px -5px rgba(16, 185, 129, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.5)';
+            } else {
+                sb.style.backgroundColor = '#020617'; sb.style.color = '#f87171'; sb.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+                sb.style.boxShadow = '0 20px 25px -5px rgba(244, 63, 94, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.5)';
+            }
+            sb.classList.remove('hidden', 'scale-95', 'opacity-0'); sb.classList.add('scale-100', 'opacity-100');
+            setTimeout(() => {
+                sb.classList.remove('scale-100', 'opacity-100'); sb.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => { sb.classList.add('hidden'); }, 300);
+            }, 3000);
+        }
+
+        async function handleSystemLogout() {
+            if (!confirm("Safely terminate your identity access management session?")) return;
+            try { await fetch('/user/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); } 
+            catch (err) { console.error(err.message); }
+            finally { localStorage.clear(); window.location.href = "/user/login-page"; }
+        }
+
+        async function initializeManagementConsole() {
+            await Promise.all([fetchSitesDropdownCatalog(), fetchSuppliersDropdownCatalog()]);
+            loadMasterUsersDirectory();
+        }
+
+        initializeManagementConsole();
+    </script>
+</body>
+</html>

@@ -118,7 +118,7 @@
                 localStorage.setItem('userId', data.user.id);       
                 localStorage.setItem('email', data.user.email);     
                 localStorage.setItem('siteId', data.user.site_id || 'HO'); 
-                localStorage.setItem('supplierId', data.user.supplier_id || 'NONE'); 
+                localStorage.setItem('supplierId', data.user.supplierId || 'NONE'); // Changed to supplierId with capital I
 
                 // Present success confirmation notice status change elements
                 statusBox.innerText = "Access Granted! Customizing Operational Desk...";

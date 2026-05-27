@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -38,6 +37,13 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
+    },
+    // 🌟 ADDED: Status structural state tracking configuration field
+    status: {
+        type: String,
+        required: true,
+        enum: ['Active', 'Inactive'],
+        default: 'Active'
     }
 }, {
     timestamps: true,
@@ -46,16 +52,13 @@ const UserSchema = new mongoose.Schema({
 
 // --- Pre-Save Hook: Automatically hash password before saving to database ---
 UserSchema.pre("save", async function () {
-    // Only hash the password if it has been modified or is brand new
     if (!this.isModified("password")) return;
-
     try {
         const saltRounds = 10; 
         const salt = await bcrypt.genSalt(saltRounds);
         this.password = await bcrypt.hash(this.password, salt);
-        // No next() needed here! Returning finishes the pre-save hook smoothly.
     } catch (error) {
-        throw error; // Mongoose intercepts thrown errors and passes them down safely
+        throw error;
     }
 });
 

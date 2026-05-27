@@ -1,116 +1,143 @@
+const { purgeWorkforceBinaryFiles } = require("../utils/document_purger"); // 🌟 CRITICAL FIX: Links your background cleanup function!
 const MobilizationRequest = require("../models/mobilization_request");
 const Designation = require("../models/designation");
+const Blacklist = require("../models/blacklist");
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 
-// 1. DISPATCH NEW WORKFORCE MOBILIZATION RECOGNITION PACKET
 const createMobilizationRequest = async (req, res) => {
+    // Keep a listing tracking array of local files to clean up on execution exit loops
+    const temporaryFilesToCleanup = [];
+
     try {
         const { 
             civil_id, employee_name, nationality, dob, mobile_number, 
             designation_id, civil_expire, accommodation_type, target_site_id, 
-            sponsor_company, medical_file_url, hse_file_url, wqt_file_url, urgency 
+            sponsor_company, urgency 
         } = req.body;
 
-        // Extracts the authenticated subcontractor company ID linked by authMiddleware
-        const sub_company_id = req.user.supplier_id; 
+        const sub_company_id = req.user.supplier_id || req.user.supplierId; 
+        if (!sub_company_id) return res.status(401).json({ message: "Session token missing subcontractor supplier link." });
 
-        // Core base validation guard check
-        if (!civil_id || !employee_name || !nationality || !dob || !mobile_number || 
-            !designation_id || !civil_expire || !accommodation_type || !target_site_id || 
-            !sponsor_company || !medical_file_url || !hse_file_url) {
-            return res.status(400).json({ message: "All required employee information and document file reference links are mandatory." });
+        if (!civil_id || !employee_name || !nationality || !dob || !mobile_number || !designation_id || !civil_expire || !accommodation_type || !target_site_id || !sponsor_company) {
+            return res.status(400).json({ message: "All employee registration details and expiration fields are mandatory." });
         }
 
-        // Strict accommodation type structural verification boundary check
-        const allowedAccommodations = ["1SS", "2SS", "3SS", "1JS", "2JS", "3JS"];
-        if (!allowedAccommodations.includes(accommodation_type)) {
-            return res.status(400).json({ message: "Invalid field entry! Accommodation type must map strictly to: 1SS, 2SS, 3SS, 1JS, 2JS, or 3JS." });
+        // Validate physical multi-part document files presence logs
+        if (!req.files || !req.files.medical_file || !req.files.hse_file) {
+            return res.status(400).json({ message: "Upload Blocked! Both physical Medical and HSE PDF files must be attached." });
         }
 
-        const cleanCivilId = civil_id.trim();
-
-        // SECURITY GUARD A: Query your native blacklists log collection map to enforce safety boundaries
-        const isBlacklisted = await mongoose.connection.collection("blacklist").findOne({ civil_id: cleanCivilId });
-        if (isBlacklisted) {
-            return res.status(403).json({ 
-                message: `Deployment Blocked! Employee Civil ID '${cleanCivilId}' is permanently blacklisted. Reason: ${isBlacklisted.reason_for_blacklisting || 'Compliance Violation'}` 
-            });
-        }
-
-        // SECURITY GUARD B: Smart Queue Check - ONLY block if this worker has an entry actively sitting in 'Under Review' status state.
-        // Historic applications that are already Approved, Rejected, or Cancelled are completely ignored, allowing re-mobilization over time!
-        const activeQueueCheck = await MobilizationRequest.findOne({ 
-            civil_id: cleanCivilId, 
-            status: "Under Review" 
+        // Initialize the native official GridFS Bucket instance seamlessly
+        const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
+            bucketName: "workforce_docs"
         });
-        
-        if (activeQueueCheck) {
-            return res.status(400).json({ 
-                message: "Duplicate registration rejected! A mobilization package for this worker is currently active inside the evaluation review queues." 
+
+        // HELPER SUB-ENGINE: Streams buffered disk storage data smoothly into MongoDB chunks
+        const streamFileToGridFS = (fileObject) => {
+            return new Promise((resolve, reject) => {
+                temporaryFilesToCleanup.push(fileObject.path); // Add to cleanup list array tracking
+                
+                const uploadStream = bucket.openUploadStream(`${Date.now()}-${fileObject.filename}`, {
+                    contentType: fileObject.mimetype
+                });
+
+                fs.createReadStream(fileObject.path)
+                    .pipe(uploadStream)
+                    .on("error", (err) => reject(err))
+                    .on("finish", () => resolve(`/mobilization/file/${uploadStream.id}`));
             });
-        }
+        };
 
-        // 2. Fetch selected trade designation data to enforce specialized Oman welder constraints
+        // Stream required documentation packets concurrently
+        const medical_file_url = await streamFileToGridFS(req.files.medical_file[0]);
+        const hse_file_url = await streamFileToGridFS(req.files.hse_file[0]);
+
+        // Process dynamic specialized Welder checking parameters rules
         const tradeProfile = await Designation.findById(designation_id);
-        if (!tradeProfile) {
-            return res.status(404).json({ message: "Selected Designation Job Title classification not found in system catalogs." });
-        }
-
-        const isWelderTrade = tradeProfile.title.toLowerCase().includes("welder");
+        const isWelderTrade = tradeProfile && tradeProfile.title.toLowerCase().includes("welder");
         let assignedWqtComment = "Not Required for this Trade";
         let verifiedWqtUrl = "";
 
-        // WELDER MANDATORY WQT CARD SUBMISSION CONSTRAINT RULE
         if (isWelderTrade) {
-            if (!wqt_file_url) {
-                return res.status(400).json({ message: "Compliance Verification Blocked! Workers under Welder designations must possess a valid Welder Qualification Test (WQT) card file attachment link." });
+            if (!req.files.wqt_file) {
+                throw new Error("Welder job classifications require uploading a valid physical WQT certification card PDF.");
             }
+            verifiedWqtUrl = await streamFileToGridFS(req.files.wqt_file[0]);
             assignedWqtComment = "Pending Welder Review Team Evaluation";
-            verifiedWqtUrl = wqt_file_url;
         }
 
-        // Construct initial logging snapshot inside submission history tracking maps
+        const cleanCivilId = civil_id.trim();
+        const isBlacklisted = await Blacklist.findOne({ civil_id: cleanCivilId });
+        if (isBlacklisted) return res.status(403).json({ message: `Civil ID '${cleanCivilId}' is permanently blacklisted.` });
+
+        const activeQueueCheck = await MobilizationRequest.findOne({ civil_id: cleanCivilId, status: "Under Review" });
+        if (activeQueueCheck) return res.status(400).json({ message: "An application packet for this worker is already active inside review queues." });
+
         const initialLogEntry = {
-            action: "Submitted",
-            by_user: req.user.id || "Supplier Portal",
-            timestamp: new Date().toISOString(),
-            notes: `Initial package cataloged. Welder special WQT requirements: ${isWelderTrade ? "Enabled" : "Bypassed"}.`
+            action: "Submitted", by_user: req.user.userid || req.user.id || "Supplier Portal", timestamp: new Date().toISOString(), notes: "Initial documentation packet successfully registered to database storage bucket."
         };
 
         const newRequest = new MobilizationRequest({
             civil_id: cleanCivilId,
             employee_name: employee_name.trim(),
-            nationality: nationality.trim(),
-            dob,
+            nationality,
+            dob: new Date(dob),
             mobile_number: mobile_number.trim(),
-            designation_id,
-            civil_expire,
+            designation_id: new mongoose.Types.ObjectId(designation_id),
+            target_site_id: new mongoose.Types.ObjectId(target_site_id),
+            sub_company_id: new mongoose.Types.ObjectId(sub_company_id), 
+            civil_expire: new Date(civil_expire),
             accommodation_type,
-            target_site_id,
-            sub_company_id,
             sponsor_company: sponsor_company.trim(),
-            medical_file_url,
-            hse_file_url,
+            medical_file_url, 
+            hse_file_url,     
             wqt_file_url: verifiedWqtUrl, 
             wqt_comment: assignedWqtComment,
-            status: "Under Review",
-            urgency: urgency || "Normal", 
-            submission_history: [initialLogEntry]
+            status: "Under Review", urgency: urgency || "Normal", submission_history: [initialLogEntry]
         });
 
         await newRequest.save();
-        res.status(201).json({ message: "Workforce mobilization request package successfully registered and saved into review queues.", request: newRequest });
+
+        // 🌟 SUCCESS: Run automated storage cleanup on buffered temporary local files instantly
+        temporaryFilesToCleanup.forEach(filePath => {
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        });
+
+        res.status(201).json({ message: "Workforce mobilization request package registered successfully!", request: newRequest });
 
     } catch (error) {
-        res.status(500).json({ message: "Error compiling mobilization record metadata attributes", error: error.message });
+        // FAIL GUARD: Clear out temporary file buffers if a validation fault blocks the save transaction
+        temporaryFilesToCleanup.forEach(filePath => {
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        });
+        res.status(500).json({ message: "Error compiling mobilization records parameters", error: error.message });
     }
 };
+
+
+
 // 2. FETCH HISTORICAL MOBILIZATION LOGS FOR THE SPECIFIC LOGGED SUPPLIER ONLY
 const getSupplierOwnMobilizations = async (req, res) => {
     try {
-        const companyId = req.user.supplier_id;
+        console.log("Decoding authorization request token content details inside session tracking...", req.user);
 
-        // Executes populate schema queries to replace ObjectIDs with clear textual reference labels
+        // 🌟 CRITICAL CORRECTION: Traps all possible casing variations sent by your authMiddleware
+        const companyId = 
+            req.user.supplier_id || 
+            req.user.supplierId || 
+            req.user.sub_company_id || 
+            req.user.id || 
+            req.user.userid;
+
+        if (!companyId) {
+            return res.status(400).json({ 
+                message: "Access Denied! Subcontractor supplier context identification key missing from your authorization session payload parameters." 
+            });
+        }
+
+        // Pull collection profiles and populate textual labels dynamically from database
         const history = await MobilizationRequest.find({ sub_company_id: companyId })
             .populate("designation_id", "title risk_level")
             .populate("target_site_id", "site_name location")
@@ -118,7 +145,7 @@ const getSupplierOwnMobilizations = async (req, res) => {
 
         res.status(200).json({ count: history.length, requests: history });
     } catch (error) {
-        res.status(500).json({ message: "Error syncing workforce mobilization registry history streams", error: error.message });
+        res.status(500).json({ message: "Error syncing workforce mobilization logs", error: error.message });
     }
 };
 
@@ -130,19 +157,34 @@ const dropMobilizationRequest = async (req, res) => {
         // Locates application data, verifying it explicitly belongs to the requesting logged supplier tenant bounds
         const request = await MobilizationRequest.findOne({ 
             _id: currentId, 
-            sub_company_id: req.user.supplier_id 
+            sub_company_id: req.user.supplier_id || req.user.supplierId 
         });
 
         if (!request) {
             return res.status(404).json({ message: "Mobilization application profile tracking packet not found or access unauthorized." });
         }
 
-        // SAFETY IRREVERSIBLE STAGE GATE CHECK: Drop can only be processed before validation reaches Tier 3 Head Office
-        const advancedPipelineStates = ["Approved", "Pending HO Approval", "Pending Site Admin", "Rejected"];
-        if (advancedPipelineStates.includes(request.status)) {
+        // Only allow withdrawing if the request is strictly in a review/correction state!
+        const irreversibleStates = ["approved", "pending ho approval", "pending site admin", "rejected", "cancelled"];
+        const normalizedStatus = (request.status || "").toLowerCase().trim();
+
+        if (irreversibleStates.includes(normalizedStatus)) {
             return res.status(400).json({ 
-                message: `Drop action rejected! This worker application packet has already advanced downstream (Current Status: ${request.status}) and can no longer be dropped.` 
+                message: `Drop action rejected! This worker application packet has already advanced downstream (Current Status: ${request.status}) and can no longer be withdrawn.` 
             });
+        }
+
+        // 🌟 CRITICAL FIX: Bulletproof file string verification to handle any null/undefined fields safely!
+        const filesToPurge = [];
+        
+        if (request.medical_file_url && typeof request.medical_file_url === 'string' && request.medical_file_url.includes("/")) {
+            filesToPurge.push(request.medical_file_url);
+        }
+        if (request.hse_file_url && typeof request.hse_file_url === 'string' && request.hse_file_url.includes("/")) {
+            filesToPurge.push(request.hse_file_url);
+        }
+        if (request.wqt_file_url && typeof request.wqt_file_url === 'string' && request.wqt_file_url.includes("/")) {
+            filesToPurge.push(request.wqt_file_url);
         }
 
         request.status = "Cancelled";
@@ -150,14 +192,28 @@ const dropMobilizationRequest = async (req, res) => {
             action: "Cancelled",
             by_user: req.user.id || "Supplier Portal",
             timestamp: new Date().toISOString(),
-            notes: "Subcontractor manager successfully invoked portal drop action parameter hook to cancel application pack."
+            notes: "Subcontractor manager successfully withdrew application package files cleanly."
         });
 
         await request.save();
-        res.status(200).json({ message: "Application package successfully withdrawn from evaluation pipelines and set to Cancelled status.", request });
+
+        // AUTOMATED CASCADE ACTION: Wipes files safely with zero unhandled crash variables
+        await purgeWorkforceBinaryFiles(filesToPurge);
+
+        res.status(200).json({ message: "Application package successfully withdrawn and cancelled.", request });
 
     } catch (error) {
-        res.status(500).json({ message: "Error executing subscriber deployment package drop process", error: error.message });
+        // 🌟 CRITICAL DEBUGGER OVERRIDE: 
+        // This will print the exact operational crash logs natively inside your console terminal
+        console.log("================== CRITICAL DROP CRASH ==================");
+        console.error(error);
+        console.log("=======================================================");
+
+        // This transmits the real inner stack trace code directly to your browser popup alert box
+        res.status(500).json({ 
+            message: `Backend Crash Diagnostic: ${error.message}`, 
+            stack: error.stack 
+        });
     }
 };
 // 4. UNIFIED COMPLIANCE RE-SUBMISSION ENGINE (Handles Both, Medic only, HSE only, or WQT changes dynamically)

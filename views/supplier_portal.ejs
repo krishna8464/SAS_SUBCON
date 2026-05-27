@@ -21,6 +21,9 @@
     </script>
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased m-0 p-0">
+    <!-- Place this absolute block at the absolute top of your <body> tag wrapper in all 3 files -->
+<div id="statusBox" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-50 p-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-2xl border transition-all duration-300 transform scale-95 opacity-0 duration-300" style="min-width: 22rem; pointer-events: none;"></div>
+
 
     <!-- MASTER WRAPPER: Forces strict layout distribution -->
     <div class="flex flex-col w-full min-h-screen items-stretch justify-start bg-slate-900">
@@ -47,146 +50,130 @@
         <!-- Main Workspace Deck Grid Wrapper Container -->
         <main class="max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 items-start bg-slate-900">
             
-            <!-- Status Notification Alert Banner -->
-            <div id="statusBox" class="hidden lg:col-span-3 p-4 rounded-xl text-sm font-semibold border text-center transition-all duration-300"></div>
+        
             <!-- LEFT PANEL: Workforce Deployment Submission Form Card Components -->
             <div class="lg:col-span-1 w-full">
-                <section class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-2xl space-y-4">
-                    <div class="mb-4">
-                        <h3 id="formTitle" class="text-lg font-black text-white flex items-center gap-2">👷 Mobilize Personnel</h3>
-                        <p class="text-xs text-slate-400 mt-1">Register field employee documentation packets for multi-tier clearance evaluation.</p>
+                <section class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                <div class="mb-5">
+                    <h3 class="text-lg font-black text-white flex items-center gap-2">👤 Mobilize Personnel</h3>
+                    <p class="text-xs text-slate-400 mt-1">Register field employee documentation packets for multi-tier clearance evaluation.</p>
+                </div>
+
+                <!-- 🌟 CRITICAL FIX: Explicitly added the required form element ID -->
+                <form id="mobilizationForm" class="space-y-4">
+                    
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Oman Civil ID Number</label>
+                        <input type="text" id="civil_id" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="e.g., 10928374">
                     </div>
 
-                    <form id="mobilizationForm" class="space-y-4">
-                        <!-- Hidden parameter keys for mapping updates loops -->
-                        <input type="hidden" id="requestId" value="">
-                        <input type="hidden" id="formMode" value="CREATE"> <!-- CREATE or RESUBMIT -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Employee Name</label>
+                        <input type="text" id="employee_name" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="As written on Civil ID">
+                    </div>
 
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Oman Civil ID Number</label>
-                            <input type="text" id="civilId" required 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800"
-                                placeholder="e.g., 10928374">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Employee Name</label>
-                            <input type="text" id="employeeName" required 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800"
-                                placeholder="As written on Civil ID">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Nationality</label>
-                                <input type="text" id="nationality" required 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800"
-                                    placeholder="e.g., Omani, Indian">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Date of Birth</label>
-                                <input type="date" id="dob" required 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Mobile Number</label>
-                                <input type="text" id="mobileNumber" required 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800"
-                                    placeholder="e.g., 99445566">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Civil Expire Date</label>
-                                <input type="date" id="civilExpire" required 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Trade Designation</label>
-                                <select id="designation_id" required 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
-                                    <option value="" disabled selected class="text-slate-500">Loading Titles...</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Lodging Type</label>
-                                <select id="accommodationType" required 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs font-semibold text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800">
-                                    <option value="" disabled selected>Select Bed...</option>
-                                    <option value="1SS">1SS Single Lodging</option>
-                                    <option value="2SS">2SS Shared Lodging</option>
-                                    <option value="3SS">3SS Camp Lodging</option>
-                                    <option value="1JS">1JS Junior Suite</option>
-                                    <option value="2JS">2JS Junior Suite</option>
-                                    <option value="3JS">3JS Staff Lodging</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Target Deployment Site</label>
-                                <select id="target_site_id" required 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
-                                    <option value="" disabled selected class="text-slate-500">Loading Enclaves...</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Sponsor Company</label>
-                                <input type="text" id="sponsorCompany" required 
-                                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800"
-                                    placeholder="Visa Sponsor Name">
-                            </div>
-                        </div>
-                        <div id="medicalUploadGroup">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Fit-For-Duty Medical Certificate URL</label>
-                            <input type="url" id="medicalFileUrl" required 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
-                                placeholder="https://cloudstorage.com">
-                        </div>
-
-                        <div id="hseUploadGroup">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">HSE Induction Clearance URL</label>
-                            <input type="url" id="hseFileUrl" required 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition"
-                                placeholder="https://cloudstorage.com">
-                        </div>
-
-                        <!-- SPECIAL WELDER FIELD CAPTURE GROUP (Toggled on automatically by script listeners) -->
-                        <div id="wqtUploadGroup" class="hidden border border-amber-500/20 bg-amber-500/5 p-3 rounded-xl space-y-2">
-                            <div class="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wide">
-                                <span>⚠️ Welder Detected: WQT Card Required</span>
-                            </div>
-                            <input type="url" id="wqtFileUrl" 
-                                class="w-full bg-slate-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition"
-                                placeholder="https://cloudstorage.com">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Processing Priority Tier</label>
-                            <select id="urgency" required 
-                                class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800">
-                                <option value="Normal" class="text-white font-semibold">Normal Priority Processing</option>
-                                <option value="Urgent" class="text-amber-400 font-bold">⚠️ Urgent Fast-Track</option>
-                                <option value="Critical Emergency" class="text-rose-400 font-bold">🚨 Critical Emergency Deployment</option>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Employee Nationality</label>
+                            <select id="nationality" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                                <option value="" disabled selected>Select Nationality...</option>
+                                <option value="Omani">🇴🇲 Omani</option>
+                                <option value="Indian">🇮🇳 Indian</option>
+                                <option value="Pakistani">🇵🇰 Pakistani</option>
+                                <option value="Bangladeshi">🇧🇩 Bangladeshi</option>
+                                <option value="Egyptian">🇪🇬 Egyptian</option>
+                                <option value="Filipino">🇵🇭 Filipino</option>
+                                <option value="Other">🌍 Other / Expatriate</option>
                             </select>
                         </div>
-
-                        <div class="flex flex-col gap-2 pt-2">
-                            <button type="submit" id="submitBtn" 
-                                class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99]">
-                                Submit Worker Packet
-                            </button>
-                            <button type="button" id="cancelEditBtn" onclick="resetPortalForm()"
-                                class="hidden w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs uppercase tracking-wider transition border border-slate-700">
-                                Cancel Correction Run
-                            </button>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Date of Birth</label>
+                            <input type="date" id="dob" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
                         </div>
-                    </form>
-                </section>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Mobile Number</label>
+                            <input type="text" id="mobile_number" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="e.g., 99445566">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Civil Expire Date</label>
+                            <input type="date" id="civil_expire" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Trade Designation</label>
+                            <select id="designation_id" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                                <option value="" disabled selected>Select Risk Category Role...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Lodging Type</label>
+                            <select id="accommodation_type" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                                <option value="" disabled selected>Select Bed...</option>
+                                <option value="1SS">1SS</option>
+                                <option value="2SS">2SS</option>
+                                <option value="3SS">3SS</option>
+                                <option value="1JS">1JS</option>
+                                <option value="2JS">2JS</option>
+                                <option value="3JS">3JS</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Target Deployment Site</label>
+                            <select id="target_site_id" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                                <option value="" disabled selected>Select Target Camp Location...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Sponsor Company</label>
+                            <input type="text" id="sponsor_company" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="Visa Sponsor Name">
+                        </div>
+                    </div>
+
+                   <!-- 🌟 MEDICAL FILE BOX -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Fit-For-Duty Medical Certificate (PDF)</label>
+                        <input type="file" id="medical_file" name="medical_file" accept="application/pdf" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                        <p class="text-[10px] text-slate-500 font-semibold mt-1">⚠️ Accepts PDF format only. Maximum file size size: 5 MB.</p>
+                    </div>
+
+                    <!-- 🌟 HSE FILE BOX -->
+                    <div class="mt-4">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">HSE Induction Clearance (PDF)</label>
+                        <input type="file" id="hse_file" name="hse_file" accept="application/pdf" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                        <p class="text-[10px] text-slate-500 font-semibold mt-1">⚠️ Accepts PDF format only. Maximum file size size: 5 MB.</p>
+                    </div>
+
+                    <!-- 🌟 HIDING WELDER WQT BOX -->
+                    <div id="wqt_wrapper" class="mt-4" style="display: none;">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-rose-400 mb-1.5">Welder Qualification Card (WQT PDF)</label>
+                        <input type="file" id="wqt_file" name="wqt_file" accept="application/pdf" class="w-full bg-slate-900 border border-rose-900 rounded-xl px-4 py-2 text-sm text-white focus:ring-2 focus:ring-rose-500 outline-none transition">
+                        <p class="text-[10px] text-rose-500/70 font-semibold mt-1">⚠️ Accepts PDF format only. Maximum file size size: 5 MB.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Processing Priority Tier</label>
+                        <select id="urgency" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                            <option value="Normal">Normal Priority Processing</option>
+                            <option value="Urgent">Urgent Priority Processing</option>
+                            <option value="Critical Emergency">Critical Emergency Flight Priority</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99]">
+                            Submit Worker Packet
+                        </button>
+                    </div>
+                </form>
+            </section>
             </div>
             <!-- RIGHT PANEL: Subcontractor Live History Registry (2 Columns Grid Span) -->
             <div class="lg:col-span-2 w-full space-y-4">
@@ -236,7 +223,7 @@
                                          <th class="px-5 py-4 text-right">Actions Pipeline</th>
                                      </tr>
                                  </thead>
-                                 <tbody id="portalTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
+                                 <tbody id="supplierTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
                                      <!-- JavaScript paint loop target location -->
                                  </tbody>
                              </table>
@@ -328,28 +315,31 @@
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         const designationSelectorInput = document.getElementById('designation_id');
 
-// 🌟 SAFETY GUARD: Only binds listener if the DOM node element is successfully found!
-if (designationSelectorInput) {
-    designationSelectorInput.addEventListener('change', function() {
-        const selectedOptionText = this.options[this.selectedIndex].text.toLowerCase();
-        const wqtWrapper = document.getElementById('wqt_wrapper');
-        const wqtInput = document.getElementById('wqt_file_url');
+        // SAFETY GUARD: Only binds listener if the DOM node element is successfully found!
+        if (designationSelectorInput) {
+            designationSelectorInput.addEventListener('change', function() {
+                const selectedOptionText = this.options[this.selectedIndex].text.toLowerCase();
+                const wqtWrapper = document.getElementById('wqt_wrapper');
+                
+                // 🌟 CRITICAL FIX: Point this selector straight to your active 'wqt_file' upload element tag!
+                const wqtInput = document.getElementById('wqt_file');
 
-        if (wqtWrapper && wqtInput) {
-            if (selectedOptionText.includes('welder')) {
-                wqtWrapper.style.display = 'block';
-                wqtInput.required = true;
-            } else {
-                wqtWrapper.style.display = 'none';
-                wqtInput.required = false;
-                wqtInput.value = '';
-            }
+                if (wqtWrapper && wqtInput) {
+                    if (selectedOptionText.includes('welder')) {
+                        wqtWrapper.style.display = 'block';
+                        wqtInput.required = true;
+                        console.log("Welder role matched! Expanding WQT input slot.");
+                    } else {
+                        wqtWrapper.style.display = 'none';
+                        wqtInput.required = false;
+                        wqtInput.value = '';
+                    }
+                }
+            });
+            console.log("Welder verification event listener safely mounted.");
+        } else {
+            console.error("Layout Warning: HTML ID element 'designation_id' was not found inside your form card panel!");
         }
-    });
-    console.log("Welder verification event listener safely mounted.");
-} else {
-    console.error("Layout Warning: HTML ID element 'designation_id' was not found inside your form card panel!");
-}
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // READ OPERATIONS: FETCH ISOLATED HISTORICAL REQUESTS LOG MATRIX
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -371,135 +361,196 @@ if (designationSelectorInput) {
             const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
             
             const filteredDataset = allRequests.filter(req => {
-                // Determine layout tab mappings matching status groupings
+                // Safe check fallback to ensure status is a readable string
+                const currentStatus = (req.status || "Under Review").toLowerCase().trim();
                 let tabMatch = false;
+                
+                // Normalize the filter checks to bypass absolute string collisions
                 if (currentTabFilter === 'Review') {
-                    tabMatch = req.status === 'Under Review' || req.status === 'Pending HO Approval' || req.status === 'Pending Site Admin';
+                    tabMatch = currentStatus === 'under review' || currentStatus.includes('pending');
                 } else if (currentTabFilter === 'Correction') {
-                    tabMatch = req.status.startsWith('Resubmit');
+                    tabMatch = currentStatus.includes('resubmit');
                 } else if (currentTabFilter === 'Cleared') {
-                    tabMatch = req.status === 'Approved' || req.status === 'Rejected' || req.status === 'Cancelled';
+                    tabMatch = currentStatus === 'approved' || currentStatus === 'rejected' || currentStatus === 'cancelled';
                 }
 
+                // Search text matching query paths
                 const searchMatch = 
                     req.employee_name.toLowerCase().includes(searchVal) ||
                     req.civil_id.includes(searchVal) ||
                     req.sponsor_company.toLowerCase().includes(searchVal) ||
-                    (req.designation_id && req.designation_id.title.toLowerCase().includes(searchVal));
+                    (req.designation_id && req.designation_id.title && req.designation_id.title.toLowerCase().includes(searchVal));
 
                 return tabMatch && searchMatch;
             });
 
+            // Fire data row drawer matrix
             renderTable(filteredDataset);
         }
-
         function setPortalTab(tabType) {
             currentTabFilter = tabType;
-            const tabReview = document.getElementById('tabReviewBtn');
-            const tabCorrection = document.getElementById('tabCorrectionBtn');
-            const tabCleared = document.getElementById('tabClearedBtn');
+            
+            // Support your original HTML button ID names
+            const tabReview = document.getElementById('tabReviewBtn') || document.getElementById('filterActiveBtn');
+            const tabCorrection = document.getElementById('tabCorrectionBtn') || document.getElementById('filterCorrectionsBtn');
+            const tabCleared = document.getElementById('tabClearedBtn') || document.getElementById('filterClearedBtn');
 
-            // Toggle horizontal active slider aesthetics
-            tabReview.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Review' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
-            tabCorrection.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Correction' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
-            tabCleared.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Cleared' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            // Toggle horizontal active button styles dynamically via Tailwind utilities
+            if (tabReview) tabReview.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Review' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tabCorrection) tabCorrection.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Correction' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tabCleared) tabCleared.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Cleared' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
 
             applyHistoryFilters();
         }
-
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // DOM RENDERING ENGINE: DRAW DATA TABLE ROW NODES WITH DYNAMIC DROP SHORTCUTS
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        function renderTable(arr) {
-            const tbody = document.getElementById('supplierTableBody');
-            document.getElementById('recordCount').innerText = arr.length;
-            tbody.innerHTML = '';
-
-            if (arr.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-slate-500 italic text-xs">No workforce deployment records active under this segment parameter.</td></tr>`;
-                return;
-            }
-
-            arr.forEach(req => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition";
-
-                // Generate colored status text elements dynamically
-                let statusBadge = 'bg-slate-800/60 text-slate-400 border-slate-700/60';
-                if (req.status === 'Under Review' || req.status.startsWith('Pending')) statusBadge = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-                else if (req.status === 'Approved') statusBadge = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-                else if (req.status === 'Rejected' || req.status.startsWith('Resubmit')) statusBadge = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-
-                // Display dynamic conditional drop buttons layout only while processing review gates
-                let actionBtnMarkup = `<span class="text-slate-500 italic">No Actions</span>`;
-                const droppableStates = ["Under Review", "Resubmit for Medic", "Resubmit for HSE", "Resubmit for Both", "Resubmit for WQT"];
+            function renderTable(arr) {
+                // 🌟 CRITICAL FIX: Point this selector straight to your active 'portalTableBody' container element tag!
+                const tbody = document.getElementById('portalTableBody') || document.getElementById('supplierTableBody');  
                 
-                if (droppableStates.includes(req.status)) {
-                    actionBtnMarkup = `<button onclick="dropMobilizationPacket('${req._id}')" class="bg-rose-600/10 text-rose-400 border border-rose-500/10 px-2.5 py-1 text-[11px] font-bold rounded-lg hover:bg-rose-600 hover:text-white transition">Withdraw / Drop</button>`;
-                } else if (req.status.startsWith('Resubmit')) {
-                    actionBtnMarkup = `<div class="flex flex-col gap-1 items-end"><span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider animate-pulse">Action Required</span></div>`;
+                const recordIndicatorCount = document.getElementById('recordCount');
+                if (recordIndicatorCount) recordIndicatorCount.innerText = arr.length;
+                
+                if (!tbody) {
+                    console.error("System Matrix Error: Could not locate 'portalTableBody' element inside your HTML layout view!");
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+
+                if (arr.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-slate-500 italic text-xs">No workforce deployment records active under this segment parameter.</td></tr>`;
+                    return;
                 }
 
-                const destName = req.target_site_id ? req.target_site_id.site_name : 'Unassigned';
-                const destLoc = req.target_site_id ? req.target_site_id.location : 'Oman';
-                const roleTitle = req.designation_id ? req.designation_id.title : 'Unclassified';
+                arr.forEach(req => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition";
 
-                tr.innerHTML = `
-                    <td class="px-6 py-4">
-                        <div class="font-black text-white text-xs uppercase tracking-wide">${req.employee_name}</div>
-                        <div class="font-mono text-[10px] text-slate-500 font-bold mt-0.5">CIVIL ID: ${req.civil_id}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="text-xs font-bold text-slate-300 capitalize">${roleTitle}</div>
-                        <div class="text-[10px] text-slate-500 font-semibold mt-0.5">📍 ${destName.toUpperCase()} (${destLoc}) [Bed: ${req.accommodation_type}]</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${statusBadge}">${req.status}</span>
-                    </td>
-                    <td class="px-6 py-4 text-right">${actionBtnMarkup}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+                    let statusBadge = 'bg-slate-800/60 text-slate-400 border-slate-700/60';
+                    const currentStatus = (req.status || "Under Review").trim();
+                    
+                    if (currentStatus === 'Under Review' || currentStatus.includes('Pending')) {
+                        statusBadge = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                    } else if (currentStatus === 'Approved') {
+                        statusBadge = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                    } else if (currentStatus === 'Rejected' || currentStatus.includes('Resubmit')) {
+                        statusBadge = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                    }
+
+                    let actionBtnMarkup = `<span class="text-slate-500 italic">No Actions</span>`;
+                    const droppableStates = ["Under Review", "Resubmit for Medic", "Resubmit for HSE", "Resubmit for Both", "Resubmit for WQT"];
+                    
+                    if (droppableStates.includes(req.status)) {
+                        actionBtnMarkup = `<button onclick="dropMobilizationPacket('${req._id}')" class="bg-rose-600/10 text-rose-400 border border-rose-500/10 px-2.5 py-1 text-[11px] font-bold rounded-lg hover:bg-rose-600 hover:text-white transition">Withdraw / Drop</button>`;
+                    }
+
+                    const destName = req.target_site_id ? (req.target_site_id.site_name || 'Active Site') : 'Unassigned';
+                    const destLoc = req.target_site_id ? (req.target_site_id.location || 'Oman') : 'Oman';
+                    const roleTitle = req.designation_id ? (req.designation_id.title || 'General Labor') : 'Unclassified';
+
+                    let wqtLinkMarkup = '';
+                            if (req.wqt_file_url) {
+                                wqtLinkMarkup = `<a href="${req.wqt_file_url}" target="_id_view" class="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded-md hover:bg-rose-600 hover:text-white transition font-bold">📄 WQT PDF</a>`;
+                            }
+
+                            tr.innerHTML = `
+                                <td class="px-6 py-4">
+                                    <div class="font-black text-white text-xs uppercase tracking-wide">${req.employee_name}</div>
+                                    <div class="font-mono text-[10px] text-slate-500 font-bold mt-0.5">CIVIL ID: ${req.civil_id}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-xs font-bold text-slate-300 capitalize">${roleTitle}</div>
+                                    <div class="text-[10px] text-slate-500 font-semibold mt-0.5 mb-2">📍 ${destName.toUpperCase()} (${destLoc}) [Bed: ${req.accommodation_type}]</div>
+                                    
+                                    <!-- 🌟 INTERACTIVE FILE VIEWER BUTTON LABELS: Opens streaming PDFs natively inside target windows -->
+                                    <div class="flex gap-1.5 items-center flex-wrap">
+                                        <a href="${req.medical_file_url}" target="_id_view" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-md hover:bg-blue-600 hover:text-white transition font-bold">📄 Medical PDF</a>
+                                        <a href="${req.hse_file_url}" target="_id_view" class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md hover:bg-emerald-600 hover:text-white transition font-bold">📄 HSE PDF</a>
+                                        ${wqtLinkMarkup}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${statusBadge}">${req.status}</span>
+                                </td>
+                                <td class="px-6 py-4 text-right">${actionBtnMarkup}</td>
+                            `;
+                            tbody.appendChild(tr);
+                });
+            }
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // TRANSACTION WRITE PIPELINES: INITIATE REQUEST & SUPPLIER DROP ROUTINES
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        document.getElementById('mobilizationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                civil_id: document.getElementById('civil_id').value,
-                employee_name: document.getElementById('employee_name').value,
-                nationality: document.getElementById('nationality').value,
-                dob: document.getElementById('dob').value,
-                mobile_number: document.getElementById('mobile_number').value,
-                designation_id: document.getElementById('designation_id').value,
-                civil_expire: document.getElementById('civil_expire').value,
-                accommodation_type: document.getElementById('accommodation_type').value,
-                target_site_id: document.getElementById('target_site_id').value,
-                sponsor_company: document.getElementById('sponsor_company').value,
-                medical_file_url: document.getElementById('medical_file_url').value,
-                hse_file_url: document.getElementById('hse_file_url').value,
-                wqt_file_url: document.getElementById('wqt_file_url').value,
-                urgency: document.getElementById('urgency').value
-            };
+        const submissionFormElement = document.getElementById('mobilizationForm');
 
-            try {
-                const res = await fetch('/mobilization/submit-worker', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message);
+        if (submissionFormElement) {
+            submissionFormElement.addEventListener('submit', async (e) => {
+                e.preventDefault();
+            
+                // Extract and cast raw date values to ISO format strings for strict Mongoose compliance
+                const rawDob = document.getElementById('dob').value;
+                const rawCivilExpire = document.getElementById('civil_expire').value;
+                
+                // Initialize a multi-part container wrapper to pass files and text strings concurrently
+                const formDataPayload = new FormData();
+                
+                // 1. Append standard textual database information attributes
+                formDataPayload.append("civil_id", document.getElementById('civil_id').value.trim());
+                formDataPayload.append("employee_name", document.getElementById('employee_name').value.trim());
+                formDataPayload.append("nationality", document.getElementById('nationality').value.trim());
+                formDataPayload.append("dob", rawDob ? new Date(rawDob).toISOString() : "");
+                formDataPayload.append("mobile_number", document.getElementById('mobile_number').value.trim());
+                formDataPayload.append("designation_id", document.getElementById('designation_id').value);
+                formDataPayload.append("civil_expire", rawCivilExpire ? new Date(rawCivilExpire).toISOString() : "");
+                formDataPayload.append("accommodation_type", document.getElementById('accommodation_type').value);
+                formDataPayload.append("target_site_id", document.getElementById('target_site_id').value);
+                formDataPayload.append("sponsor_company", document.getElementById('sponsor_company').value.trim());
+                formDataPayload.append("urgency", document.getElementById('urgency').value);
 
-                showAlert("Workforce mobilization packet successfully dispatched into review loops!", "success");
-                resetForm(); 
-                loadSupplierDashboard();
-            } catch (err) { showAlert(err.message, "error"); }
-        });
+                // 2. Map file upload form element node references
+                const medInput = document.getElementById('medical_file');
+                const hseInput = document.getElementById('hse_file');
+                const wqtInput = document.getElementById('wqt_file');
 
+                // 3. Extract and append binary attachments seamlessly to payload fields
+                if (medInput && medInput.files && medInput.files[0]) {
+                    formDataPayload.append("medical_file", medInput.files[0]);
+                }
+                if (hseInput && hseInput.files && hseInput.files[0]) {
+                    formDataPayload.append("hse_file", hseInput.files[0]);
+                }
+                if (wqtInput && wqtInput.files && wqtInput.files.length > 0) {
+                 formDataPayload.append("wqt_file", wqtInput.files[0]);
+                 console.log("Welder special WQT file binary appended to multi-part payload matrix.");
+                }
+
+                try {
+            // 🌟 CORRECTION FIXED: Passes the Authorization token header while letting the Content-Type stay clean
+            const res = await fetch('/mobilization/submit-worker', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}` // Injects your saved secure login session token string
+                },
+                body: formDataPayload // Streams your text values and PDF binary attachments concurrently
+            });
+            
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+
+            showAlert("Workforce mobilization packet with physical PDF documents uploaded successfully!", "success");
+            resetForm(); 
+            loadSupplierDashboard(); // Instantly syncs and refreshes your right-side data table grid
+        } catch (err) { 
+            showAlert(err.message, "error"); 
+        }
+            });
+            console.log("Form submission event listener safely mounted.");
+        } else {
+            console.error("Critical System Warning: HTML Element id='mobilizationForm' missing in action!");
+        }
         async function dropMobilizationPacket(id) {
-            if (!confirm("Are you sure you want to completely drop and withdraw this pending employee mobilization request?")) return;
+            if (!confirm("Are you sure you want to completely drop and withdraw this pending employee mobilization request? All uploaded compliance documents will be permanently destroyed from database disks.")) return;
             try {
                 const res = await fetch(`/mobilization/drop-request/${id}`, {
                     method: 'PUT',
@@ -508,9 +559,14 @@ if (designationSelectorInput) {
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.message);
 
-                showAlert("Application packet successfully withdrawn and cancelled.", "success");
-                loadSupplierDashboard();
-            } catch (err) { showAlert(err.message, "error"); }
+                // 🌟 SUCCESS POPUP OVERLAY TOAST DIALOG
+                showAlert("Application successfully withdrawn. Associated binary document files dropped from local storage disks.", "success");
+                
+                // 🌟 CRITICAL FIX: Instantly pulls fresh backend data and updates the table row state
+                await loadSupplierDashboard(); 
+            } catch (err) { 
+                showAlert(err.message, "error"); 
+            }
         }
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -531,20 +587,69 @@ if (designationSelectorInput) {
         }
 
         function resetForm() {
-            document.getElementById('mobilizationForm').reset();
-            document.getElementById('wqt_wrapper').style.display = 'none';
-            document.getElementById('wqt_file_url').required = false;
-            document.getElementById('designation_id').value = "";
-            document.getElementById('target_site_id').value = "";
-            document.getElementById('accommodation_type').value = "";
-            document.getElementById('urgency').value = "Normal";
+            const mainForm = document.getElementById('mobilizationForm');
+            if (mainForm) mainForm.reset();
+
+            const wqtWrapper = document.getElementById('wqt_wrapper');
+            if (wqtWrapper) wqtWrapper.style.display = 'none';
+
+            // 🌟 CORRECTION FIXED: Targets your actual updated 'wqt_file' file element handler!
+            const wqtFileInput = document.getElementById('wqt_file');
+            if (wqtFileInput) wqtFileInput.required = false;
+
+            // Explicitly force dropdown placeholder selections back to default states
+            const desSelect = document.getElementById('designation_id');
+            const siteSelect = document.getElementById('target_site_id');
+            const accomSelect = document.getElementById('accommodation_type');
+            const natSelect = document.getElementById('nationality');
+            const urgSelect = document.getElementById('urgency');
+
+            if (desSelect) desSelect.value = "";
+            if (siteSelect) siteSelect.value = "";
+            if (accomSelect) accomSelect.value = "";
+            if (natSelect) natSelect.value = "";
+            if (urgSelect) urgSelect.value = "Normal";
+            
+            console.log("Form components states successfully returned to baseline.");
         }
 
-        function showAlert(msg, type) {
-            const sb = document.getElementById('statusBox'); sb.innerText = msg;
-            sb.className = `mb-6 p-4 rounded-xl text-sm font-semibold border text-center block ${type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`;
-            setTimeout(() => { sb.className = "hidden"; }, 4000);
-        }
+        // UNIVERSAL OVERLAY TOAST POPUP DISPATCH PIPELINE
+function showAlert(msg, type) {
+    const sb = document.getElementById('statusBox');
+    if (!sb) return;
+
+    // 1. Inject server notification textual data strings
+    sb.innerText = msg;
+
+    // 2. Clear previous themes and apply matching background colors
+    if (type === 'success' || type === 'status-success') {
+        sb.style.backgroundColor = '#020617';
+        sb.style.color = '#34d399';
+        sb.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+        sb.style.boxShadow = '0 20px 25px -5px rgba(16, 185, 129, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.5)';
+    } else {
+        sb.style.backgroundColor = '#020617';
+        sb.style.color = '#f87171';
+        sb.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+        sb.style.boxShadow = '0 20px 25px -5px rgba(244, 63, 94, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.5)';
+    }
+
+    // 3. Trigger css pop-up animations entry states
+    sb.classList.remove('hidden', 'scale-95', 'opacity-0');
+    sb.classList.add('scale-100', 'opacity-100');
+
+    // 4. Close the popup cleanly after a 3-second cycle run duration interval
+    setTimeout(() => {
+        sb.classList.remove('scale-100', 'opacity-100');
+        sb.classList.add('scale-95', 'opacity-0');
+        
+        // Wait for the exit animation transition to complete before hiding the container node completely
+        setTimeout(() => {
+            sb.classList.add('hidden');
+        }, 300);
+    }, 3000);
+}
+
 
         async function initializePortal() {
             await Promise.all([populateDesignationsDropdown(), populateSitesDropdown()]);

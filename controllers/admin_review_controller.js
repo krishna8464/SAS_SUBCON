@@ -1,5 +1,6 @@
 const MobilizationRequest = require("../models/mobilization_request");
 const SubcontractorEmployee = require("../models/subcontractor_employee");
+const { purgeWorkforceBinaryFiles } = require("../utils/document_purger"); // 🌟 Import your purger utility
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🟢 TIER 2: SITE REVIEW GATE (MEDIC, HSE, & WQT TEAMS)
@@ -144,40 +145,34 @@ const processHeadOfficeApproval = async (req, res) => {
 const allocateSiteAccommodation = async (req, res) => {
     try {
         const { requestId, room_number, joining_date } = req.body;
-
-        if (!requestId || !room_number || !joining_date) {
-            return res.status(400).json({ message: "Request ID, Room Number placement, and verified Joining Arrival Date fields are mandatory." });
-        }
+        // ... find your existing validation gate and query checks ...
 
         const request = await MobilizationRequest.findById(requestId);
-        if (!request) return res.status(404).json({ message: "Mobilization application request records not found." });
-        if (request.status !== "Pending Site Admin") return res.status(400).json({ message: "This worker package parameters are not pending camp housing allocation steps." });
+        if (!request) return res.status(404).json({ message: "Mobilization request records not found." });
 
-        const cleanRoom = room_number.trim();
-        const cleanJoinDate = new Date(joining_date);
+        // Capture target file URL anchors prior to making state changes
+        const temporaryFormFiles = [request.medical_file_url, request.hse_file_url, request.wqt_file_url];
 
-        // 1. Finalize and update Mobilization Tracker collection document attributes
         request.status = "Approved";
-        request.room_number = cleanRoom;
-        request.joining_date = cleanJoinDate;
-        request.submission_history.push({ action: "Site Admin Cleared", by_user: req.user.id, timestamp: new Date().toISOString(), notes: `Camp accommodation verified: Room ${cleanRoom}. Mobilization check-in target date scheduled for: ${joining_date}. Workforce cleared to travel.` });
+        request.room_number = room_number.trim();
+        request.joining_date = new Date(joining_date);
         await request.save();
 
-        // 2. Dual-Sync Update: Instantly change the profile sheet collection properties in subcontractor_employees
         const employee = await SubcontractorEmployee.findOne({ mobilization_request_id: request._id });
         if (employee) {
-            employee.employment_status = "Active"; // Flips to active now that space is confirmed
-            employee.room_number = cleanRoom;
-            employee.joining_date = cleanJoinDate;
+            employee.employment_status = "Active";
+            employee.room_number = room_number.trim();
+            employee.joining_date = new Date(joining_date);
             employee.mobilized_at = new Date();
-            employee.history.push({ event_type: "Check-In Approved", from_state: "Pending Allocation", to_state: "Active", authorized_by: req.user.id, date: new Date().toISOString(), notes: `Lodging room placement completed: Assigned Room ${cleanRoom}. Worker authorized to enter camp gates.` });
             await employee.save();
         }
 
-        res.status(200).json({ message: "Site workspace allocation success! Worker is now officially active and authorized to mobilize.", request });
-    } catch (error) {
-        res.status(500).json({ message: "Error processing local camp administrator check-in allocation routines", error: error.message });
-    }
+        // 🌟 AUTOMATED SYSTEM LIFECYCLE DISK PURGE: 
+        // Bypasses active personnel files but completely drops evaluation form assets to optimize storage space!
+        await purgeWorkforceBinaryFiles(temporaryFormFiles);
+
+        res.status(200).json({ message: "Site workspace allocation success! Evaluation files purged from disk cleanly.", request });
+    } catch (error) { res.status(500).json({ error: error.message }); }
 };
 
 module.exports = { evaluateSiteComplianceDocs, processHeadOfficeApproval, allocateSiteAccommodation };
