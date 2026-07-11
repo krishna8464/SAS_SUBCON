@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS_SUBCON - Applicant Verification File</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+        }
+    </script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased m-0 p-0">
+
+    <div class="flex flex-col w-full min-h-screen items-stretch justify-start">
+        <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 shadow-lg w-full shrink-0">
+            <div class="max-w-7xl mx-auto flex justify-between items-center w-full">
+                <div>
+                    <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
+                        <button onclick="window.history.back()" class="bg-slate-900 border border-slate-800 text-slate-400 font-bold px-3 py-1.5 text-xs rounded-xl hover:text-white transition">◀ Back to Portal</button>
+                        <span>SAS_SUBCON Personnel Profile File</span>
+                    </h1>
+                </div>
+                <div id="globalLifecycleStatusBadge" class="text-xs bg-slate-900 border border-slate-800 px-3 py-1.5 font-black uppercase tracking-wider rounded-xl select-none">Under Review</div>
+            </div>
+        </header>
+
+        <!-- MAIN OVERVIEW CONTAINER SPACE -->
+        <main class="flex-1 w-full max-w-7xl mx-auto p-6 space-y-6 flex flex-col items-stretch">
+            
+            <!-- BIOMETRIC DATA CARDS GRID PANEL ROW -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                
+                <!-- ACCOUNT PROFILE PANEL CONTAINER -->
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 border-b border-slate-900 pb-2 flex items-center gap-1.5">👤 Worker Profile Registry</h3>
+                    <div class="space-y-3 text-xs">
+                        <div><span class="text-slate-500 font-semibold block uppercase">Employee Name:</span> <span id="lbl_worker_name" class="text-sm font-black text-white uppercase tracking-wide">--</span></div>
+                        <div><span class="text-slate-500 font-semibold block uppercase">Oman Civil ID:</span> <span id="lbl_civil_id" class="font-mono text-slate-200 font-bold">--</span></div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><span class="text-slate-500 font-semibold block uppercase">Nationality:</span> <span id="lbl_nationality" class="font-semibold text-slate-300">--</span></div>
+                            <div><span class="text-slate-500 font-semibold block uppercase">Date of Birth:</span> <span id="lbl_dob" class="font-mono font-semibold text-slate-300">--</span></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><span class="text-slate-500 font-semibold block uppercase">Mobile GSM:</span> <span id="lbl_mobile" class="font-mono font-semibold text-slate-300">--</span></div>
+                            <div><span class="text-slate-500 font-semibold block uppercase">Civil Expiry:</span> <span id="lbl_civil_expire" class="font-mono font-semibold text-slate-300">--</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ALLOCATION SCALES COMPLIANCE CARD CONTAINER -->
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 border-b border-slate-900 pb-2 flex items-center gap-1.5">🗺️ Logistics & Site Allocation Scope</h3>
+                    <div class="space-y-3 text-xs">
+                        <div><span class="text-slate-500 font-semibold block uppercase">Trade Designation:</span> <span id="lbl_designation" class="text-sm font-bold text-emerald-400 capitalize">--</span></div>
+                        <div><span class="text-slate-500 font-semibold block uppercase">Target Camp Site Destination:</span> <span id="lbl_site" class="font-semibold text-slate-200">--</span></div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><span class="text-slate-500 font-semibold block uppercase">Housing Bed:</span> <span id="lbl_lodging" class="font-mono font-black text-slate-300">--</span></div>
+                            <div><span class="text-slate-500 font-semibold block uppercase">Priority Tier:</span> <span id="lbl_urgency" class="font-bold text-slate-300">--</span></div>
+                        </div>
+                        <div><span class="text-slate-500 font-semibold block uppercase">Visa Sponsor Company Link:</span> <span id="lbl_sponsor" class="font-semibold text-slate-300">--</span></div>
+                    </div>
+                </div>
+
+                <!-- INDEPENDENT EVALUATION PRIVILEGE GATES DISPLAY CARD -->
+                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 border-b border-slate-900 pb-2 flex items-center gap-1.5">🛡️ Privilege Gates Clearance Metrics</h3>
+                    <div class="space-y-4 text-xs flex flex-col justify-center">
+                        <div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-800/60">
+                            <div><span class="font-bold text-slate-300">🩺 Site Clinic Medical Status:</span><div id="lbl_medic_comment" class="text-[10px] text-slate-500 font-medium mt-0.5">--</div></div>
+                            <span id="badge_medic_gate" class="px-2 py-0.5 font-black text-[10px] uppercase rounded border">Pending</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-800/60">
+                            <div><span class="font-bold text-slate-300">🛡️ HSE Safety Induction Status:</span><div id="lbl_hse_comment" class="text-[10px] text-slate-500 font-medium mt-0.5">--</div></div>
+                            <span id="badge_hse_gate" class="px-2 py-0.5 font-black text-[10px] uppercase rounded border">Pending</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-800/60">
+                            <div><span class="font-bold text-slate-300">🛠️ Welder Qualification (WQT):</span><div id="lbl_wqt_comment" class="text-[10px] text-slate-500 font-medium mt-0.5">--</div></div>
+                            <span id="badge_wqt_gate" class="px-2 py-0.5 font-black text-[10px] uppercase rounded border">Pending</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMPLIANCE BINARY ATTACHMENTS VIEW CARDS ROW -->
+            <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+                <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 border-b border-slate-900 pb-2">📄 Uploaded Compliance Certificate Documents</h3>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <a id="btn_view_medical" href="#" target="_id_view" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600 hover:text-white px-4 py-2.5 rounded-xl font-black uppercase tracking-wider text-xs transition">📄 Review Fit-For-Duty Medical PDF</a>
+                    <a id="btn_view_hse" href="#" target="_id_view" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600 hover:text-white px-4 py-2.5 rounded-xl font-black uppercase tracking-wider text-xs transition">📄 Review Safety Induction PDF</a>
+                    <a id="btn_view_wqt" href="#" target="_id_view" class="hidden bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600 hover:text-white px-4 py-2.5 rounded-xl font-black uppercase tracking-wider text-xs transition">📄 Review Welder WQT PDF</a>
+                </div>
+            </div>
+            <!-- CHRONOLOGICAL HISTORY TIMELINE PANEL DECK BLOCK (BOTTOM FUNCTIONAL ALIGNMENT) -->
+            <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col items-stretch space-y-4">
+                <div class="border-b border-slate-900 pb-3 flex justify-between items-center">
+                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <span>⏱️ Audit Submission History Log Timeline</span>
+                    </h3>
+                    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Read-Only Automated Tracking Ledger</span>
+                </div>
+
+                <!-- Live Historical Activity List Paint Target Row -->
+                <div id="timelineLogsContainer" class="space-y-3 max-h-[350px] overflow-y-auto pr-2">
+                    <!-- JavaScript dynamically writes horizontal history cards here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Orchestrator: Pulls, compiles, and frames relational histories instantly -->
+    <script>
+        const activeToken = localStorage.getItem('token');
+        const activeRequestId = "<%= requestId %>"; // Injected safely from backend express view router params
+
+        if (!activeToken) { window.location.href = "/user/login-page"; }
+
+        async function initializeRequestDetailedConsole() {
+            try {
+                // Fetch the expanded populated payload profile row matrix
+                const res = await fetch(`/mobilization/request-context/${activeRequestId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${activeToken}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+
+                const req = data.request;
+
+                // 1. Map static text biometric data fields
+                document.getElementById('lbl_worker_name').innerText = req.employee_name;
+                document.getElementById('lbl_civil_id').innerText = req.civil_id;
+                document.getElementById('lbl_nationality').innerText = req.nationality;
+                document.getElementById('lbl_dob').innerText = new Date(req.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                document.getElementById('lbl_mobile').innerText = req.mobile_number;
+                document.getElementById('lbl_civil_expire').innerText = new Date(req.civil_expire).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                
+                document.getElementById('lbl_designation').innerText = req.designation_id ? req.designation_id.title : 'Expatriate Labor';
+                document.getElementById('lbl_site').innerText = req.target_site_id ? `${req.target_site_id.site_name.toUpperCase()} (${req.target_site_id.location})` : 'Global Core';
+                document.getElementById('lbl_lodging').innerText = req.accommodation_type;
+                document.getElementById('lbl_urgency').innerText = req.urgency;
+                document.getElementById('lbl_sponsor').innerText = req.sponsor_company;
+
+                // 2. Configure compliance text viewers link anchors
+                document.getElementById('btn_view_medical').href = req.medical_file_url;
+                document.getElementById('btn_view_hse').href = req.hse_file_url;
+                
+                if (req.wqt_file_url && req.wqt_file_url.trim() !== "") {
+                    const wqtBtn = document.getElementById('btn_view_wqt');
+                    wqtBtn.href = req.wqt_file_url;
+                    wqtBtn.classList.remove('hidden');
+                }
+
+                // 3. Draw independent multi-gate clearance status badge layout states
+                mapIndependentGateBadge('badge_medic_gate', 'lbl_medic_comment', req.medical_status, req.medical_comment);
+                mapIndependentGateBadge('badge_hse_gate', 'lbl_hse_comment', req.hse_status, req.hse_comment);
+                mapIndependentGateBadge('badge_wqt_gate', 'lbl_wqt_comment', req.wqt_status, req.wqt_comment);
+
+                // Global Lifecycle Wrapper Badge
+                const gBadge = document.getElementById('globalLifecycleStatusBadge');
+                gBadge.innerText = req.status;
+                if (req.status === 'Approved') gBadge.className = "text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 font-black uppercase tracking-wider rounded-xl";
+                else if (req.status.includes('Resubmit')) gBadge.className = "text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1.5 font-black uppercase tracking-wider rounded-xl";
+                else gBadge.className = "text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1.5 font-black uppercase tracking-wider rounded-xl";
+
+                // 4. CHRONOLOGICAL LOGS PAINTER TABLE: Compiles full site medic & hse historical evaluation tracks
+                paintHistoryChronologyTimeline(req.submission_history || []);
+
+            } catch (err) { alert("Console Initialization Fault: " + err.message); }
+        }
+
+        function mapIndependentGateBadge(badgeId, textId, stateValue, noteText) {
+            const bg = document.getElementById(badgeId);
+            const tx = document.getElementById(textId);
+            
+            bg.innerText = stateValue;
+            tx.innerText = noteText || "Awaiting evaluation check-in loops...";
+
+            if (stateValue === 'Approved') bg.className = "px-2 py-0.5 font-black text-[10px] uppercase rounded border bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+            else if (stateValue === 'Resubmit') bg.className = "px-2 py-0.5 font-black text-[10px] uppercase rounded border bg-rose-500/10 text-rose-400 border-rose-500/20";
+            else if (stateValue === 'Not Required') bg.className = "px-2 py-0.5 font-black text-[10px] uppercase rounded border bg-slate-900 text-slate-500 border-slate-800";
+            else bg.className = "px-2 py-0.5 font-black text-[10px] uppercase rounded border bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse";
+        }
+
+        function paintHistoryChronologyTimeline(historyArray) {
+            const container = document.getElementById('timelineLogsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!historyArray || historyArray.length === 0) {
+                container.innerHTML = `<div class="text-xs text-slate-500 font-semibold italic p-4 text-center">No system operations snapshots cataloged for this packet timeline.</div>`;
+                return;
+            }
+
+            // Clone and reverse array rows to stack the latest audit logs right at the peak
+            [...historyArray].reverse().forEach(log => {
+                const row = document.createElement('div');
+                row.className = "bg-slate-900 p-3.5 rounded-xl border border-slate-800/60 text-xs flex justify-between items-start gap-4 flex-wrap hover:border-slate-700/40 transition mb-3";
+                
+                let logBadgeClass = 'bg-slate-800 text-slate-400 border-slate-700';
+                if (log.action === 'Submitted' || log.action === 'Resubmitted') logBadgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20 font-bold';
+                else if (log.action === 'Approved' || log.action.includes('Room') || log.action.includes('Passed')) logBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-bold';
+                else if (log.action.includes('Resubmit') || log.action === 'Cancelled' || log.action.includes('Rejected')) logBadgeClass = 'bg-rose-500/10 text-rose-400 border-rose-500/20 font-bold';
+
+                const logTime = new Date(log.timestamp).toLocaleString('en-GB', { 
+                    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+                });
+                
+                // 🌟 CRITICAL RE-ALIGNMENT FIX: Safe evaluation guards map strings and user object models cleanly!
+                let displayExecutorName = "System Portal";
+                let displayExecutorRole = "";
+
+                if (log.by_user) {
+                    if (typeof log.by_user === 'object' && log.by_user !== null) {
+                        // 🌟 SUCCESS: Read the hydrated name and role properties fetched by the controller!
+                        displayExecutorName = log.by_user.name || "System Portal";
+                        displayExecutorRole = log.by_user.role ? `[${log.by_user.role}]` : "";
+                    } else if (typeof log.by_user === 'string') {
+                        const cleanUserStr = log.by_user.trim();
+                        // Safe check fallback rule if an ID fails to query cleanly or defaults to baseline string tracks
+                        if (mongoose.Types.ObjectId.isValid(cleanUserStr)) {
+                            displayExecutorName = `User ID: ${cleanUserStr.substring(0, 8)}...`;
+                            displayExecutorRole = "[COORDINATOR]";
+                        } else {
+                            displayExecutorName = cleanUserStr;
+                            if (cleanUserStr.toLowerCase().includes("portal") || cleanUserStr.toLowerCase().includes("supplier")) {
+                                displayExecutorRole = "[SUPPLIER]";
+                            }
+                        }
+                    }
+                }
+
+                row.innerHTML = `
+                    <div class="space-y-1.5 flex-1 min-w-[250px]">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase tracking-wider ${logBadgeClass}">${log.action}</span>
+                            <div class="font-extrabold text-slate-300">
+                                Executed by: <span class="text-white">${displayExecutorName}</span> 
+                                <span class="text-emerald-500 font-mono text-[10px] font-black tracking-wide">${displayExecutorRole}</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-400 font-medium pl-1 leading-relaxed border-l-2 border-slate-800/80 mt-1">${log.notes || 'No notes left for this verification lane.'}</div>
+                    </div>
+                    <div class="font-mono text-[10px] text-slate-500 font-bold shrink-0 mt-0.5">⏱️ ${logTime}</div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Initialize script parameters pipeline
+        initializeRequestDetailedConsole();
+    </script>
+</body>
+</html>

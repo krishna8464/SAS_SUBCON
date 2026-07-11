@@ -6,7 +6,8 @@ const {
     toggleUserAccountStatus,  // 🌟 ADDED: Controller to toggle active state filters
     loginUser, 
     logoutUser, 
-    updateSupplierId 
+    updateSupplierId,
+    updateUserProfile 
 } = require("../controllers/user_controller");
 const { authMiddleware } = require("../middleware/auth");
 
@@ -31,5 +32,7 @@ Userroute.post("/logout", authMiddleware, logoutUser);
 // New management route pipeline intersections mapping hooks
 Userroute.get("/all", authMiddleware, getAllUserProfiles);                     // GET -> /user/all
 Userroute.put("/toggle-status/:id", authMiddleware, toggleUserAccountStatus);  // PUT -> /user/toggle-status/:id
+
+Userroute.put("/update-profile/:id", authMiddleware, updateUserProfile);
 
 module.exports = { Userroute };

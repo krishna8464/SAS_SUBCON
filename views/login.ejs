@@ -113,7 +113,7 @@
                 }
 
                 // SECURE PAYLOAD STORAGE: Save token identities safely inside browser caching pools
-                localStorage.setItem('token', data.token);
+  localStorage.setItem('token', data.token);
                 localStorage.setItem('role', data.user.role);
                 localStorage.setItem('userId', data.user.id);       
                 localStorage.setItem('email', data.user.email);     
@@ -124,13 +124,24 @@
                 statusBox.innerText = "Access Granted! Customizing Operational Desk...";
                 statusBox.className = "p-4 rounded-xl text-xs font-bold uppercase tracking-wider text-center block bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-6 shadow";
 
-                // DYNAMIC ROLE GATE ROUTER: Evaluates account credentials and splits travel endpoints
+                // DYNAMIC ROLE GATE ROUTER: Evaluates account credentials and routes to specific workspace landing pages
                 setTimeout(() => {
-                    if (data.user.role === 'SUPPLIER') {
-                        // Subcontractor entry launch workflow page path
+                    const userRole = data.user.role;
+
+                    if (userRole === 'SUPPLIER') {
+                        // 🏭 Subcontractor coordination ticket upload desk
                         window.location.href = "/mobilization/portal"; 
+                    } else if (['HO', 'DEVELOPER', 'ERP_TEAM'].includes(userRole)) {
+                        // 🏢 Central management and developers go straight to the User Directory card interface
+                        window.location.href = "/user/manage-users";
+                    } else if (userRole === 'SITE_MEDIC') {
+                        // 🩺 Medical Clearance officers map straight to their dedicated active clinical queue grid
+                        window.location.href = "/user/medic-dashboard";
+                    } else if (userRole === 'SITE_HSE') {
+                        // 🛡️ Safety Clearance officers route straight to their upcoming safety validation dashboard
+                        window.location.href = "/user/hse-dashboard";
                     } else {
-                        // Internal back-office organizational operations deck cockpit
+                        // 📍 Fallback structural operations route path matching your baseline environment settings
                         window.location.href = "/site/manage-sites";
                     }
                 }, 1200);

@@ -33,14 +33,14 @@
                 </button>
             </div>
         </header>
-
         <!-- MAIN LAYOUT MATRIX COMPONENT SECTION -->
         <main class="flex-1 w-full max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <!-- LEFT PANEL: REGISTER USER CONTEXT CARD COMPONENT -->
             <section class="lg:col-span-4 bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
                 <div class="mb-4">
-                    <h3 class="text-lg font-black text-white flex items-center gap-2">🔑 Provision Account</h3>
-                    <p class="text-xs text-slate-400 mt-1">Register corporate credentials, authorize system privileges, and link operations scopes.</p>
+                    <!-- Unique explicit IDs added here to prevent document query selection crashes -->
+                    <h3 id="formCardTitle" class="text-lg font-black text-white flex items-center gap-2">🔑 Provision Account</h3>
+                    <p id="formCardSubtext" class="text-xs text-slate-400 mt-1">Register corporate credentials, authorize system privileges, and link operations scopes.</p>
                 </div>
 
                 <form id="userProvisionForm" class="space-y-4">
@@ -58,7 +58,6 @@
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Security Password</label>
                         <input type="password" id="password" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="••••••••">
                     </div>
-
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">GSM Contact Cell Number</label>
                         <input type="text" id="cell_number" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="e.g. 99445566">
@@ -66,7 +65,7 @@
 
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Privilege Operational Role</label>
-                        <select id="role" required onchange="handleRoleContextShifting()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                        <select id="role" required onchange="handleRoleContextShifting()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition cursor-pointer">
                             <option value="" disabled selected>Select Authorization Role...</option>
                             <option value="HO">🏢 HO (Head Office Operations)</option>
                             <option value="SITE_HSE">🛡️ SITE_HSE (Safety Clearance Team)</option>
@@ -74,12 +73,14 @@
                             <option value="SITE_MANAGER">🫅 SITE_MANAGER (Site Admin Checker)</option>
                             <option value="SUPPLIER">🏭 SUPPLIER (Subcontractor Coordinator)</option>
                             <option value="ERP_TEAM">💻 ERP_TEAM (Core Audit Administrator)</option>
+                            <option value="DEVELOPER">💻 DEVELOPER (Core System Engineer)</option>
                         </select>
                     </div>
+
                     <!-- DYNAMIC SITE ALLOCATION WRAPPER (Hidden by default) -->
                     <div id="site_allocation_wrapper" style="display: none;">
                         <label class="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1.5">Assigned Target Camp Site</label>
-                        <select id="site_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                        <select id="site_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition cursor-pointer">
                             <option value="" disabled selected>Select Camp Location...</option>
                         </select>
                     </div>
@@ -87,23 +88,22 @@
                     <!-- DYNAMIC SUPPLIER ALLOCATION WRAPPER (Hidden by default) -->
                     <div id="supplier_allocation_wrapper" style="display: none;">
                         <label class="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">Linked Supplier Corporate Tenant</label>
-                        <select id="supplier_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-amber-500 outline-none transition">
+                        <select id="supplier_id" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-amber-500 outline-none transition cursor-pointer">
                             <option value="" disabled selected>Select Supplier Firm...</option>
                         </select>
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99]">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99] cursor-pointer">
                             Provision User Account
                         </button>
                     </div>
                 </form>
             </section>
-
             <!-- RIGHT PANEL: HORIZONTAL SEARCH AND SYSTEM DATA GRIDS DIRECTORY -->
             <section class="lg:col-span-8 space-y-4 flex flex-col items-stretch w-full h-full">
                 
-                <!-- FIXED HORIZONTAL FILTER BAR DECK (CRASH INLINE OVERRIDES APPLIED) -->
+                <!-- FIXED HORIZONTAL FILTER BAR DECK -->
                 <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl w-full" style="display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; flex-wrap: wrap !important;">
                     <div class="relative w-full md:max-w-xs shrink-0" style="display: block !important; margin: 0 !important; max-width: 18rem !important; width: 100% !important;">
                         <input type="text" id="searchInput" oninput="applyDirectoryFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="Search users by name, email, role...">
@@ -111,9 +111,9 @@
                     </div>
 
                     <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 shrink-0 select-none" style="display: flex !important; flex-direction: row !important; gap: 4px !important; margin: 0 !important; align-items: center !important;">
-                        <button type="button" id="tabAllBtn" onclick="setUserStatusTabFilter('ALL')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition bg-emerald-600 text-white shadow border-none">All Accounts</button>
-                        <button type="button" id="tabActiveBtn" onclick="setUserStatusTabFilter('Active')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">Active</button>
-                        <button type="button" id="tabInactiveBtn" onclick="setUserStatusTabFilter('Inactive')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">Suspended</button>
+                        <button type="button" id="tabAllBtn" onclick="setUserStatusTabFilter('ALL')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition bg-emerald-600 text-white shadow border-none cursor-pointer">All Accounts</button>
+                        <button type="button" id="tabActiveBtn" onclick="setUserStatusTabFilter('Active')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none cursor-pointer">Active</button>
+                        <button type="button" id="tabInactiveBtn" onclick="setUserStatusTabFilter('Inactive')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none cursor-pointer">Suspended</button>
                     </div>
 
                     <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 tracking-wide shrink-0" style="display: block !important; margin: 0 !important;">
@@ -134,7 +134,7 @@
                                 </tr>
                             </thead>
                             <tbody id="userTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
-                                <!-- JavaScript paint loop row target -->
+                                <!-- Paint loop row target -->
                             </tbody>
                         </table>
                     </div>
@@ -142,16 +142,16 @@
             </section>
         </main>
     </div>
-    <!-- Master Execution Script: Orchestrates IAM data transaction pipelines -->
     <script>
         const token = localStorage.getItem('token');
         let masterUsersDataset = [];
         let currentStatusFilter = 'ALL';
+        
+        // Active memory identifier tracking editing user state
+        let activeProfileMutationUserId = null;
 
-        // Security session perimeter validation gate check
         if (!token) { window.location.href = "/user/login-page"; }
 
-        // CONTEXT-SHIFTING CONTROLLER: Toggle layout visibility matching role selections
         function handleRoleContextShifting() {
             const role = document.getElementById('role').value;
             const siteWrapper = document.getElementById('site_allocation_wrapper');
@@ -176,7 +176,6 @@
             }
         }
 
-        // DEPENDENCY INJECTORS: Fetches plural collections and populates select tags natively
         async function fetchSitesDropdownCatalog() {
             const selector = document.getElementById('site_id');
             if (!selector) return;
@@ -214,9 +213,6 @@
                 });
             } catch (err) { console.error("Error populating supplier selectors:", err.message); }
         }
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // READ/WRITE TRANSACTIONS DIRECTORY CHANNELS
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         async function loadMasterUsersDirectory() {
             try {
                 const res = await fetch('/user/all', { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
@@ -227,46 +223,6 @@
             } catch (err) { showAlert(err.message, "error"); }
         }
 
-        document.getElementById('userProvisionForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                role: document.getElementById('role').value,
-                cell_number: document.getElementById('cell_number').value,
-                site_id: document.getElementById('site_id').value || "",
-                supplier_id: document.getElementById('supplier_id').value || ""
-            };
-
-            try {
-                const res = await fetch('/user/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message);
-
-                showAlert("Personnel identity credentials provisioned successfully into core indexes!", "success");
-                document.getElementById('userProvisionForm').reset();
-                handleRoleContextShifting();
-                loadMasterUsersDirectory();
-            } catch (err) { showAlert(err.message, "error"); }
-        });
-
-        async function toggleAccountOperationalState(id) {
-            try {
-                const res = await fetch(`/user/toggle-status/${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message);
-
-                showAlert("User system access rules updated successfully!", "success");
-                loadMasterUsersDirectory();
-            } catch (err) { showAlert(err.message, "error"); }
-        }
-
-        // FILTERING & TAB NAVIGATION BAR HANDLERS
         function applyDirectoryFilters() {
             const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
             const filtered = masterUsersDataset.filter(user => {
@@ -287,19 +243,22 @@
 
         function setUserStatusTabFilter(stateType) {
             currentStatusFilter = stateType;
-            const tAll = document.getElementById('tabAllBtn');
-            const tAct = document.getElementById('tabActiveBtn');
-            const tIna = document.getElementById('tabInactiveBtn');
-
-            if (tAll) tAll.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (stateType === 'ALL' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
-            if (tAct) tAct.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (stateType === 'Active' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
-            if (tIna) tIna.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (stateType === 'Inactive' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
-
+            document.getElementById('tabAllBtn').className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none cursor-pointer " + (stateType === 'ALL' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            document.getElementById('tabActiveBtn').className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none cursor-pointer " + (stateType === 'Active' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            document.getElementById('tabInactiveBtn').className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none cursor-pointer " + (stateType === 'Inactive' ? "bg-emerald-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
             applyDirectoryFilters();
         }
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// DOM RENDERING ENGINE: DRAW DATA TABLE ROW NODES WITH ACTIONABLE TRIGGERS
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        async function toggleAccountOperationalState(id) {
+            try {
+                const res = await fetch(`/user/toggle-status/${id}`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+
+                showAlert("User system access rules updated successfully!", "success");
+                loadMasterUsersDirectory();
+            } catch (err) { showAlert(err.message, "error"); }
+        }
         function renderUserGridTable(arr) {
             const tbody = document.getElementById('userTableBody');
             document.getElementById('recordCount').innerText = arr.length;
@@ -312,27 +271,28 @@
 
             arr.forEach(user => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition";
+                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition items-center";
 
-                // Resolve relational joins safely
                 let allocationText = `<span class="text-slate-500 italic font-medium">Global Corporate Scope</span>`;
                 if (user.role === 'SUPPLIER' && user.supplier_id) {
-                    allocationText = `🏭 <span class="font-bold text-slate-300 capitalize">${user.supplier_id.supplier_name}</span>`;
+                    allocationText = `🏭 <span class="font-bold text-slate-300 capitalize">${user.supplier_id.supplier_name || 'Direct Subcon'}</span>`;
                 } else if (user.site_id) {
-                    allocationText = `📍 <span class="font-bold text-slate-300 capitalize">${user.site_id.site_name}</span> <span class="text-slate-500">(${user.site_id.location})</span>`;
+                    allocationText = `📍 <span class="font-bold text-slate-300 capitalize">${user.site_id.site_name || 'Base Site'}</span> <span class="text-slate-500">(${user.site_id.location || ''})</span>`;
                 }
 
-                // 🌟 CORRECTION FIXED: Inverts the button markup to show actionable triggers instead of static status!
+                const safeSiteId = user.site_id ? (user.site_id._id || user.site_id) : '';
+                const safeSupplierId = user.supplier_id ? (user.supplier_id._id || user.supplier_id) : '';
+
+                // Injected Edit trigger button node safely escaping quotes
+                const editBtnMarkup = `<button type="button" onclick="triggerProfileEditMode('${user._id}', '${user.name.replace(/'/g, "\\'")}', '${user.email}', '${user.role}', '${safeSiteId}', '${safeSupplierId}', '${user.cell_number}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-1.5 rounded-lg font-black uppercase tracking-wider text-[10px] transition shadow-sm active:scale-95 mr-2 cursor-pointer">Edit</button>`;
+
                 let toggleBtnMarkup = '';
                 if (user.status === 'Active') {
-                    // Account is open -> show a red "SUSPEND" action layout option button trigger
-                    toggleBtnMarkup = `<button onclick="toggleAccountOperationalState('${user._id}')" class="bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-wider text-[10px] transition border-none shadow-sm active:scale-95">Suspend</button>`;
+                    toggleBtnMarkup = editBtnMarkup + `<button type="button" onclick="toggleAccountOperationalState('${user._id}')" class="bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-wider text-[10px] transition border-none shadow-sm active:scale-95 cursor-pointer">Suspend</button>`;
                 } else {
-                    // Account is blocked -> show a green "ACTIVATE" action layout option button trigger
-                    toggleBtnMarkup = `<button onclick="toggleAccountOperationalState('${user._id}')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-wider text-[10px] transition border-none shadow-sm active:scale-95">Activate</button>`;
+                    toggleBtnMarkup = editBtnMarkup + `<button type="button" onclick="toggleAccountOperationalState('${user._id}')" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-wider text-[10px] transition border-none shadow-sm active:scale-95 cursor-pointer">Activate</button>`;
                 }
 
-                // Generate clean visual badge markers for your information profile column status tracking card row
                 const statusMarkerBadge = user.status === 'Active'
                     ? `<span class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">Online</span>`
                     : `<span class="text-[9px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider">Suspended</span>`;
@@ -350,14 +310,124 @@
                         <div class="text-[10px] text-slate-500 font-mono mt-1 font-bold">📲 GSM: ${user.cell_number}</div>
                     </td>
                     <td class="px-5 py-4 text-xs font-semibold">${allocationText}</td>
-                    <td class="px-5 py-4">${toggleBtnMarkup}</td>
+                    <td class="px-5 py-4">
+                        <div class="flex items-center justify-start">${toggleBtnMarkup}</div>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
+        function triggerProfileEditMode(id, name, email, role, siteId, supplierId, cellNumber) {
+            activeProfileMutationUserId = id;
 
+            // Direct ID bindings targeting form label cards smoothly to eliminate select crashes
+            const formHeading = document.getElementById('formCardTitle');
+            const formSubtext = document.getElementById('formCardSubtext');
 
-        // UNIVERSAL POPUP TOAST SYSTEM & DEACTIVATION CONTROLS
+            if (formHeading) formHeading.innerHTML = "✏️ Update Profile";
+            if (formSubtext) formSubtext.innerText = "Modify active identity access privileges, cellular indices, and operational boundaries.";
+
+            document.getElementById('name').value = name;
+            document.getElementById('email').value = email;
+            document.getElementById('cell_number').value = cellNumber;
+            document.getElementById('role').value = role;
+
+            const passwordField = document.getElementById('password');
+            if (passwordField) {
+                passwordField.removeAttribute('required');
+                passwordField.placeholder = "Leave blank to keep password...";
+                passwordField.value = "";
+            }
+
+            const siteSelect = document.getElementById('site_id');
+            const supplierSelect = document.getElementById('supplier_id');
+            if (siteSelect) siteSelect.value = (siteId && siteId !== 'undefined' && siteId !== 'null') ? siteId : "";
+            if (supplierSelect) supplierSelect.value = (supplierId && supplierId !== 'undefined' && supplierId !== 'null') ? supplierId : "";
+
+            handleRoleContextShifting();
+
+            const actionSubmitBtn = document.querySelector('#userProvisionForm button[type="submit"]');
+            if (actionSubmitBtn) {
+                actionSubmitBtn.innerText = "SAVE PROFILE MODIFICATIONS";
+                actionSubmitBtn.className = "w-full bg-amber-600 hover:bg-amber-500 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99] cursor-pointer mt-2";
+            }
+
+            if (!document.getElementById('cancelProfileEditButton')) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.id = 'cancelProfileEditButton';
+                cancelBtn.type = 'button';
+                cancelBtn.innerText = "Cancel Edit Mode";
+                cancelBtn.className = "w-full bg-slate-900 hover:bg-slate-800 text-slate-400 font-bold py-2.5 px-4 rounded-xl text-xs uppercase tracking-wider transition border border-slate-800 mt-2 block text-center cursor-pointer";
+                cancelBtn.onclick = resetIdentityFormToDefault;
+                actionSubmitBtn.parentNode.appendChild(cancelBtn);
+            }
+        }
+
+        function resetIdentityFormToDefault() {
+            activeProfileMutationUserId = null;
+            document.getElementById('userProvisionForm').reset();
+
+            const passwordField = document.getElementById('password');
+            if (passwordField) {
+                passwordField.setAttribute('required', 'true');
+                passwordField.placeholder = "••••••••";
+            }
+
+            const formHeading = document.getElementById('formCardTitle');
+            const formSubtext = document.getElementById('formCardSubtext');
+            if (formHeading) formHeading.innerHTML = "🔑 Provision Account";
+            if (formSubtext) formSubtext.innerText = "Register corporate credentials, authorize system privileges, and link operations scopes.";
+
+            const actionSubmitBtn = document.querySelector('#userProvisionForm button[type="submit"]');
+            if (actionSubmitBtn) {
+                actionSubmitBtn.innerText = "Provision User Account";
+                actionSubmitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99] cursor-pointer mt-2";
+            }
+
+            const cancelBtn = document.getElementById('cancelProfileEditButton');
+            if (cancelBtn) cancelBtn.remove();
+
+            handleRoleContextShifting();
+        }
+        document.getElementById('userProvisionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value,
+                cell_number: document.getElementById('cell_number').value,
+                site_id: document.getElementById('site_id').value || "",
+                supplier_id: document.getElementById('supplier_id').value || ""
+            };
+
+            const targetUrl = activeProfileMutationUserId ? `/user/update-profile/${activeProfileMutationUserId}` : '/user/register';
+            const actionMethod = activeProfileMutationUserId ? 'PUT' : 'POST';
+
+            if (activeProfileMutationUserId && !payload.password) {
+                delete payload.password;
+            }
+
+            try {
+                const res = await fetch(targetUrl, {
+                    method: actionMethod,
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+
+                const successMsg = activeProfileMutationUserId 
+                    ? "Subcontractor personnel profile details updated successfully inside database directories!"
+                    : "Personnel identity credentials provisioned successfully into core indexes!";
+
+                showAlert(successMsg, "success");
+                resetIdentityFormToDefault(); 
+                loadMasterUsersDirectory();
+            } catch (err) { showAlert(err.message, "error"); }
+        });
+
         function showAlert(msg, type) {
             const sb = document.getElementById('statusBox'); if (!sb) return;
             sb.innerText = msg;

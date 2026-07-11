@@ -74,6 +74,25 @@ const MobilizationRequestSchema = new mongoose.Schema({
     },
     wqt_file_url: { type: String, default: "" }, // Required only if designation is a Welder title
     wqt_comment: { type: String, default: "Not Required for this Trade" }, // Changes to pending for welders
+
+        medical_status: { 
+        type: String, 
+        required: true, 
+        enum: ['Pending', 'Approved', 'Resubmit'], 
+        default: 'Pending' 
+    },
+    hse_status: { 
+        type: String, 
+        required: true, 
+        enum: ['Pending', 'Approved', 'Resubmit'], 
+        default: 'Pending' 
+    },
+    wqt_status: { 
+        type: String, 
+        required: true, 
+        enum: ['Pending', 'Approved', 'Resubmit', 'Not Required'], 
+        default: 'Pending' 
+    },
     
     status: {
         type: String,
@@ -82,8 +101,7 @@ const MobilizationRequestSchema = new mongoose.Schema({
             "Under Review",        // Tier 2: Pending Site Reviewers (Medic, HSE, and optionally WQT)
             "Pending HO Approval", // Tier 3: Approved by reviewers, pending HO Subcon ID allocation
             "Pending Site Admin",  // Tier 4: Approved by HO, pending room checking configurations
-            "Approved", "Cancelled", "Rejected",
-            "Resubmit for Medic", "Resubmit for HSE", "Resubmit for WQT", "Resubmit for Both"
+            "Approved", "Cancelled", "Rejected"
         ],
         default: "Under Review"
     },

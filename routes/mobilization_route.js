@@ -5,7 +5,9 @@ const {
     createMobilizationRequest, 
     getSupplierOwnMobilizations, 
     dropMobilizationRequest, 
-    resubmitMobilizationDocuments 
+    resubmitMobilizationDocuments,
+    getRequestDetailedContext,
+    resubmitWorkerDocumentCorrection
 } = require("../controllers/mobilization_controller");
 const { authMiddleware } = require("../middleware/auth");
 const { uploadMobilizationFiles } = require("../middleware/upload"); // 🌟 IMPORT UPLOAD MIDDLEWARE
@@ -17,12 +19,18 @@ Mobilizationroute.get("/portal", (req, res) => {
     res.render("supplier_portal"); // Renders your upcoming views/supplier_portal.ejs file
 });
 
+Mobilizationroute.get("/request-details/:id", (req, res) => {
+    res.render("request_details", { requestId: req.params.id }); 
+});
+
 // 2. PROTECTED DATA API TRANSACTION PIPELINE ROUTING
 Mobilizationroute.get("/my-submissions", authMiddleware, getSupplierOwnMobilizations);
 Mobilizationroute.put("/drop-request/:id", authMiddleware, dropMobilizationRequest); // Supplier 'Drop / Cancel' Route hook
 Mobilizationroute.put("/resubmit/:id", authMiddleware, resubmitMobilizationDocuments); // Dynamic document re-submission route
 // 🌟 UPDATED: Added uploadMobilizationFiles directly into your POST route pipeline!
 Mobilizationroute.post("/submit-worker", authMiddleware, uploadMobilizationFiles, createMobilizationRequest);
+Mobilizationroute.get("/request-context/:id", authMiddleware, getRequestDetailedContext);
+Mobilizationroute.post("/resubmit-file/:id", authMiddleware, uploadMobilizationFiles, resubmitWorkerDocumentCorrection);
 
 Mobilizationroute.get("/file/:id", async (req, res) => {
     try {

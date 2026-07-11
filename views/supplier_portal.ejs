@@ -21,6 +21,18 @@
     </script>
 </head>
 <body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased m-0 p-0">
+    <!-- Place this absolute block at the absolute top of your <body> tag wrapper -->
+<div id="portalGlobalLoader" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] gap-4 transition-all duration-300">
+    <!-- Animated Processing Spinner Matrix Core -->
+    <div class="relative w-16 h-16 flex items-center justify-center mx-auto mb-4">
+        <div class="absolute inset-0 rounded-full border-4 border-slate-800 border-t-emerald-500 animate-spin"></div>
+        <div class="w-8 h-8 rounded-full border-4 border-slate-900 border-b-blue-400 animate-spin animate-reverse" style="animation-duration: 1s; animation-direction: reverse;"></div>
+    </div>
+    <div class="text-center space-y-1 mx-auto">
+        <h4 class="text-sm font-black uppercase tracking-widest text-white animate-pulse">Streaming Workforce Assets</h4>
+        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Uploading physical document PDFs into local storage bucket disks...</p>
+    </div>
+</div>
     <!-- Place this absolute block at the absolute top of your <body> tag wrapper in all 3 files -->
 <div id="statusBox" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-50 p-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-2xl border transition-all duration-300 transform scale-95 opacity-0 duration-300" style="min-width: 22rem; pointer-events: none;"></div>
 
@@ -232,6 +244,42 @@
                 </section>
             </div>
 
+
+<!-- 🌟 ARCHITECTURAL ALIGNMENT UPGRADE: STRUCTURALLY HIDDEN BY DEFAULT -->
+<div id="resubmitFileModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 p-4 transition-all duration-200">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl space-y-4 mx-auto mt-24 transform scale-100 transition-all">
+        <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
+            <h3 class="text-md font-black text-white flex items-center gap-2">🔄 Resubmit Compliance Document</h3>
+            <button type="button" onclick="closeResubmitModal()" class="text-slate-500 hover:text-slate-300 text-sm font-bold bg-slate-950 px-2 py-1 rounded-lg transition border border-slate-800 border-none outline-none">ESC</button>
+        </div>
+        
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/40 space-y-1">
+            <div id="resubmitWorkerNameHeader" class="text-sm font-black text-emerald-400 uppercase tracking-wide">--</div>
+            <div id="resubmitTargetGateLabel" class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">--</div>
+        </div>
+
+        <form id="fileCorrectionForm" class="space-y-4">
+            <input type="hidden" id="resubmitTargetRequestId">
+            <input type="hidden" id="resubmitTargetGateField">
+            
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Select Fresh Valid PDF Document File</label>
+                <input type="file" id="resubmit_file_input" accept="application/pdf" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                <p class="text-[10px] text-slate-500 font-semibold mt-1">⚠️ Accepts PDF format only. Maximum file size: 5 MB.</p>
+            </div>
+
+            <div class="pt-2">
+                <button type="button" onclick="executeBinaryFileResubmission()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-95 border-none">
+                    Upload & Transmit File Correction
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
         </main>
     </div> <!-- Master global architecture page wrapper close out block -->
     <!-- Script Engine Core: Maps data streams down to Express routing endpoints -->
@@ -357,36 +405,45 @@
         }
 
         // UNIFIED SEARCH AND HORIZONTAL TAB SYSTEM ENGINE FILTERS
-        function applyHistoryFilters() {
-            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+function applyHistoryFilters() {
+    const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+    
+    const filteredDataset = allRequests.filter(req => {
+        // Safe check fallbacks to ensure field variables exist smoothly
+        const currentGlobalStatus = (req.status || "Under Review").toLowerCase().trim();
+        const medGate = (req.medical_status || "Pending").trim();
+        const hseGate = (req.hse_status || "Pending").trim();
+        const wqtGate = (req.wqt_status || "Pending").trim();
+        
+        let tabMatch = false;
+        
+        // 🌟 ARCHITECTURAL UPGRADE: Evaluates independent granular gate markers
+        if (currentTabFilter === 'Review') {
+            // Worker is in the active review pool ONLY if all gates are pending/approved and global state is active
+            const hasAnyRejections = medGate === 'Resubmit' || hseGate === 'Resubmit' || wqtGate === 'Resubmit';
+            tabMatch = !hasAnyRejections && (currentGlobalStatus === 'under review' || currentGlobalStatus.includes('pending'));
             
-            const filteredDataset = allRequests.filter(req => {
-                // Safe check fallback to ensure status is a readable string
-                const currentStatus = (req.status || "Under Review").toLowerCase().trim();
-                let tabMatch = false;
-                
-                // Normalize the filter checks to bypass absolute string collisions
-                if (currentTabFilter === 'Review') {
-                    tabMatch = currentStatus === 'under review' || currentStatus.includes('pending');
-                } else if (currentTabFilter === 'Correction') {
-                    tabMatch = currentStatus.includes('resubmit');
-                } else if (currentTabFilter === 'Cleared') {
-                    tabMatch = currentStatus === 'approved' || currentStatus === 'rejected' || currentStatus === 'cancelled';
-                }
-
-                // Search text matching query paths
-                const searchMatch = 
-                    req.employee_name.toLowerCase().includes(searchVal) ||
-                    req.civil_id.includes(searchVal) ||
-                    req.sponsor_company.toLowerCase().includes(searchVal) ||
-                    (req.designation_id && req.designation_id.title && req.designation_id.title.toLowerCase().includes(searchVal));
-
-                return tabMatch && searchMatch;
-            });
-
-            // Fire data row drawer matrix
-            renderTable(filteredDataset);
+        } else if (currentTabFilter === 'Correction') {
+            // 🌟 CRITICAL FIX: Instantly traps rows if ANY specific team issued a Resubmit override order!
+            tabMatch = medGate === 'Resubmit' || hseGate === 'Resubmit' || wqtGate === 'Resubmit';
+            
+        } else if (currentTabFilter === 'Cleared') {
+            tabMatch = currentGlobalStatus === 'approved' || currentGlobalStatus === 'rejected' || currentGlobalStatus === 'cancelled';
         }
+
+        // Search text matching query execution loops
+        const searchMatch = 
+            req.employee_name.toLowerCase().includes(searchVal) ||
+            req.civil_id.includes(searchVal) ||
+            req.sponsor_company.toLowerCase().includes(searchVal) ||
+            (req.designation_id && req.designation_id.title && req.designation_id.title.toLowerCase().includes(searchVal));
+
+        return tabMatch && searchMatch;
+    });
+
+    // Fire table layout matrix row painter
+    renderTable(filteredDataset);
+}
         function setPortalTab(tabType) {
             currentTabFilter = tabType;
             
@@ -426,24 +483,46 @@
 
                 arr.forEach(req => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition";
+                    tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition items-center";
 
-                    let statusBadge = 'bg-slate-800/60 text-slate-400 border-slate-700/60';
-                    const currentStatus = (req.status || "Under Review").trim();
-                    
-                    if (currentStatus === 'Under Review' || currentStatus.includes('Pending')) {
-                        statusBadge = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-                    } else if (currentStatus === 'Approved') {
-                        statusBadge = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-                    } else if (currentStatus === 'Rejected' || currentStatus.includes('Resubmit')) {
-                        statusBadge = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
-                    }
+                    // Format timestamps cleanly
+                    const creationDateRaw = req.createdAt ? new Date(req.createdAt) : new Date();
+                    const formattedSubmissionDate = creationDateRaw.toLocaleDateString('en-GB', {
+                        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
 
-                    let actionBtnMarkup = `<span class="text-slate-500 italic">No Actions</span>`;
-                    const droppableStates = ["Under Review", "Resubmit for Medic", "Resubmit for HSE", "Resubmit for Both", "Resubmit for WQT"];
-                    
-                    if (droppableStates.includes(req.status)) {
-                        actionBtnMarkup = `<button onclick="dropMobilizationPacket('${req._id}')" class="bg-rose-600/10 text-rose-400 border border-rose-500/10 px-2.5 py-1 text-[11px] font-bold rounded-lg hover:bg-rose-600 hover:text-white transition">Withdraw / Drop</button>`;
+                    // 🌟 ARCHITECTURAL EXTRACT: Isolate granular gate values natively
+                    const medGate = (req.medical_status || "Pending").trim();
+                    const hseGate = (req.hse_status || "Pending").trim();
+                    const wqtGate = (req.wqt_status || "Pending").trim();
+
+                    // 1. DYNAMIC STATUS & CORRECTION BADGES DETECTOR
+                    let statusBadgeMarkup = `<span class="px-2.5 py-1 rounded-xl border text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border-amber-500/20 select-none">${req.status}</span>`;
+                    let actionBtnMarkup = `<span class="text-slate-500 italic font-semibold tracking-wide">No Actions</span>`;
+
+                    const isRejected = medGate === 'Resubmit' || hseGate === 'Resubmit' || wqtGate === 'Resubmit';
+
+                    if (isRejected) {
+                        // Packet contains a correction order! Build explicit red warning pills detailing the bottleneck
+                        let errorNotes = [];
+                        if (medGate === 'Resubmit') errorNotes.push(`<button onclick="openResubmitModal('${req._id}', '${req.employee_name.replace(/'/g, "\\'")}', 'medical_file')" class="text-[9px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded hover:bg-rose-600 hover:text-white transition font-bold uppercase tracking-wider border-none">Fix Medical PDF 🔄</button>`);
+                        if (hseGate === 'Resubmit') errorNotes.push(`<button onclick="openResubmitModal('${req._id}', '${req.employee_name.replace(/'/g, "\\'")}', 'hse_file')" class="text-[9px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded hover:bg-rose-600 hover:text-white transition font-bold uppercase tracking-wider border-none">Fix HSE PDF 🔄</button>`);
+                        if (wqtGate === 'Resubmit') errorNotes.push(`<button onclick="openResubmitModal('${req._id}', '${req.employee_name.replace(/'/g, "\\'")}', 'wqt_file')" class="text-[9px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded hover:bg-rose-600 hover:text-white transition font-bold uppercase tracking-wider border-none">Fix WQT PDF 🔄</button>`);
+
+                        statusBadgeMarkup = `
+                            <div class="flex flex-col gap-1 items-center">
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide bg-rose-500/10 text-rose-400 border border-rose-500/20 select-none">Action Required</span>
+                                <div class="flex flex-col gap-1">${errorNotes.join('')}</div>
+                            </div>`;
+                            
+                        actionBtnMarkup = `<button onclick="dropMobilizationPacket('${req._id}')" class="bg-rose-600/10 text-rose-400 border border-rose-500/20 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-xl hover:bg-rose-600 hover:text-white transition border-none shadow-sm active:scale-95">Drop</button>`;
+                    } else {
+                        // Standard normal operational states mapping
+                        const droppableStates = ["Under Review", "Pending HO Approval", "Pending Site Admin"];
+                        if (droppableStates.includes(req.status)) {
+                            actionBtnMarkup = `<button onclick="dropMobilizationPacket('${req._id}')" class="bg-rose-600/10 text-rose-400 border border-rose-500/20 px-3 py-1.5 text-[11px] font-black uppercase tracking-wider rounded-xl hover:bg-rose-600 hover:text-white transition border-none shadow-sm active:scale-95">Withdraw</button>`;
+                        }
+                        if (req.status === 'Approved') statusBadgeMarkup = `<span class="px-2.5 py-1 rounded-xl border text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border-emerald-500/20 select-none">Approved</span>`;
                     }
 
                     const destName = req.target_site_id ? (req.target_site_id.site_name || 'Active Site') : 'Unassigned';
@@ -451,32 +530,41 @@
                     const roleTitle = req.designation_id ? (req.designation_id.title || 'General Labor') : 'Unclassified';
 
                     let wqtLinkMarkup = '';
-                            if (req.wqt_file_url) {
-                                wqtLinkMarkup = `<a href="${req.wqt_file_url}" target="_id_view" class="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded-md hover:bg-rose-600 hover:text-white transition font-bold">📄 WQT PDF</a>`;
-                            }
+                    if (req.wqt_file_url) {
+                        wqtLinkMarkup = `<a href="${req.wqt_file_url}" target="_id_view" class="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded-md hover:bg-rose-600 hover:text-white transition font-bold">📄 WQT PDF</a>`;
+                    }
 
-                            tr.innerHTML = `
-                                <td class="px-6 py-4">
-                                    <div class="font-black text-white text-xs uppercase tracking-wide">${req.employee_name}</div>
-                                    <div class="font-mono text-[10px] text-slate-500 font-bold mt-0.5">CIVIL ID: ${req.civil_id}</div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-xs font-bold text-slate-300 capitalize">${roleTitle}</div>
-                                    <div class="text-[10px] text-slate-500 font-semibold mt-0.5 mb-2">📍 ${destName.toUpperCase()} (${destLoc}) [Bed: ${req.accommodation_type}]</div>
-                                    
-                                    <!-- 🌟 INTERACTIVE FILE VIEWER BUTTON LABELS: Opens streaming PDFs natively inside target windows -->
-                                    <div class="flex gap-1.5 items-center flex-wrap">
-                                        <a href="${req.medical_file_url}" target="_id_view" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-md hover:bg-blue-600 hover:text-white transition font-bold">📄 Medical PDF</a>
-                                        <a href="${req.hse_file_url}" target="_id_view" class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md hover:bg-emerald-600 hover:text-white transition font-bold">📄 HSE PDF</a>
-                                        ${wqtLinkMarkup}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="px-2 py-0.5 rounded border text-[10px] font-bold uppercase ${statusBadge}">${req.status}</span>
-                                </td>
-                                <td class="px-6 py-4 text-right">${actionBtnMarkup}</td>
-                            `;
-                            tbody.appendChild(tr);
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 vertical-align-middle">
+                            <div class="font-black text-white text-xs uppercase tracking-wide">${req.employee_name}</div>
+                            <div class="font-mono text-[10px] text-slate-500 font-bold mt-0.5">CIVIL ID: ${req.civil_id}</div>
+                            <div class="text-[10px] text-emerald-500/80 font-semibold mt-1.5 flex items-center gap-1.5">
+                                <span>📅 ${formattedSubmissionDate}</span>
+                                <a href="/mobilization/request-details/${req._id}" class="text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700/60 font-black tracking-wider uppercase hover:bg-emerald-600 hover:text-white hover:border-transparent transition ml-1">View Profile 🔍</a>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 vertical-align-middle">
+                            <div class="text-xs font-bold text-slate-300 capitalize">${roleTitle}</div>
+                            <div class="text-[10px] text-slate-500 font-semibold mt-0.5 mb-2">📍 ${destName.toUpperCase()} (${destLoc}) [Bed: ${req.accommodation_type}]</div>
+                            
+                            <div class="flex gap-1.5 items-center flex-wrap">
+                                <a href="${req.medical_file_url}" target="_id_view" class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-md hover:bg-blue-600 hover:text-white transition font-bold">📄 Medical PDF</a>
+                                <a href="${req.hse_file_url}" target="_id_view" class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md hover:bg-emerald-600 hover:text-white transition font-bold">📄 HSE PDF</a>
+                                ${wqtLinkMarkup}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center vertical-align-middle" style="text-align: center !important;">
+                            <div class="inline-flex justify-center items-center w-full">
+                                ${statusBadgeMarkup}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center vertical-align-middle" style="text-align: center !important;">
+                            <div class="inline-flex justify-center items-center w-full">
+                                ${actionBtnMarkup}
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
                 });
             }
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -508,31 +596,44 @@
                 formDataPayload.append("sponsor_company", document.getElementById('sponsor_company').value.trim());
                 formDataPayload.append("urgency", document.getElementById('urgency').value);
 
-                // 2. Map file upload form element node references
                 const medInput = document.getElementById('medical_file');
                 const hseInput = document.getElementById('hse_file');
                 const wqtInput = document.getElementById('wqt_file');
 
-                // 3. Extract and append binary attachments seamlessly to payload fields
-                if (medInput && medInput.files && medInput.files[0]) {
-                    formDataPayload.append("medical_file", medInput.files[0]);
+                // 3. Extract using array destructuring syntax (This pulls the 1st file body without typing [0])
+                if (medInput && medInput.files && medInput.files.length > 0) {
+                    const [actualMedicalFileBlob] = medInput.files; 
+                    formDataPayload.append("medical_file", actualMedicalFileBlob);
+                    console.log("Medical PDF binary detached from file list wrapper successfully.");
                 }
-                if (hseInput && hseInput.files && hseInput.files[0]) {
-                    formDataPayload.append("hse_file", hseInput.files[0]);
+                
+                if (hseInput && hseInput.files && hseInput.files.length > 0) {
+                    const [actualHseFileBlob] = hseInput.files;
+                    formDataPayload.append("hse_file", actualHseFileBlob);
+                    console.log("HSE PDF binary detached from file list wrapper successfully.");
                 }
+                
+                // Only append the Welder qualification card if the input wrapper is active and populated
                 if (wqtInput && wqtInput.files && wqtInput.files.length > 0) {
-                 formDataPayload.append("wqt_file", wqtInput.files[0]);
-                 console.log("Welder special WQT file binary appended to multi-part payload matrix.");
+                    const [actualWqtFileBlob] = wqtInput.files;
+                    formDataPayload.append("wqt_file", actualWqtFileBlob);
+                    console.log("Welder special WQT PDF binary appended to multi-part payload matrix.");
                 }
 
-                try {
-            // 🌟 CORRECTION FIXED: Passes the Authorization token header while letting the Content-Type stay clean
+        try {
+            // 🌟 1. SHOW LOADER: Removes hidden and injects full flex centering classes dynamically
+            const globalLoaderNode = document.getElementById('portalGlobalLoader');
+            if (globalLoaderNode) {
+                globalLoaderNode.classList.remove('hidden');
+                globalLoaderNode.classList.add('flex', 'flex-col', 'items-center', 'justify-center');
+            }
+
             const res = await fetch('/mobilization/submit-worker', {
                 method: 'POST',
                 headers: { 
-                    'Authorization': `Bearer ${token}` // Injects your saved secure login session token string
+                    'Authorization': `Bearer ${token}` 
                 },
-                body: formDataPayload // Streams your text values and PDF binary attachments concurrently
+                body: formDataPayload 
             });
             
             const data = await res.json();
@@ -540,9 +641,17 @@
 
             showAlert("Workforce mobilization packet with physical PDF documents uploaded successfully!", "success");
             resetForm(); 
-            loadSupplierDashboard(); // Instantly syncs and refreshes your right-side data table grid
+            await loadSupplierDashboard();
+            
         } catch (err) { 
             showAlert(err.message, "error"); 
+        } finally {
+            // 🌟 2. HIDE LOADER: Removes flex rules and hides the container completely
+            const globalLoaderNode = document.getElementById('portalGlobalLoader');
+            if (globalLoaderNode) {
+                globalLoaderNode.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
+                globalLoaderNode.classList.add('hidden');
+            }
         }
             });
             console.log("Form submission event listener safely mounted.");
@@ -650,13 +759,89 @@ function showAlert(msg, type) {
     }, 3000);
 }
 
-
         async function initializePortal() {
             await Promise.all([populateDesignationsDropdown(), populateSitesDropdown()]);
             loadSupplierDashboard();
         }
 
         initializePortal();
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RESUBMISSION MODAL CONTROLLERS: PACK CORRECTION BLOCKS & STREAMS TO MONGO
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openResubmitModal(requestId, workerName, gateFieldName) {
+    document.getElementById('resubmitTargetRequestId').value = requestId;
+    document.getElementById('resubmitTargetGateField').value = gateFieldName;
+    document.getElementById('resubmitWorkerNameHeader').innerText = `AMENDING FILE FOR: ${workerName}`;
+    document.getElementById('resubmitTargetGateLabel').innerText = `Target Bottleneck: ${gateFieldName.replace('_', ' ').toUpperCase()}`;
+    document.getElementById('resubmit_file_input').value = '';
+
+    const modal = document.getElementById('resubmitFileModal');
+    if (modal) {
+        // 🌟 RE-ALIGNMENT: Clear hidden and inject absolute layout flex properties on trigger click
+        modal.classList.remove('hidden');
+        modal.classList.add('flex', 'items-center', 'justify-center');
+    }
+}
+
+function closeResubmitModal() {
+    const modal = document.getElementById('resubmitFileModal');
+    if (modal) {
+        // 🌟 RE-ALIGNMENT: Clear display properties and snap back to hidden baseline states
+        modal.classList.remove('flex', 'items-center', 'justify-center');
+        modal.classList.add('hidden');
+    }
+}
+
+async function executeBinaryFileResubmission() {
+    const requestId = document.getElementById('resubmitTargetRequestId').value;
+    const gateField = document.getElementById('resubmitTargetGateField').value; // Evaluates to 'medical_file', 'hse_file', or 'wqt_file'
+    const fileInput = document.getElementById('resubmit_file_input');
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showAlert("Please select a fresh valid physical PDF document file to proceed.", "error");
+        return;
+    }
+
+    const [actualFileBlob] = fileInput.files;
+    const formDataPayload = new FormData();
+    
+    // Pass the indicator string parameter
+    formDataPayload.append("targetField", gateField);
+    
+    // 🌟 CRITICAL RE-ALIGNMENT FIX:
+    // Instead of passing a generic string like 'correction_file', we pass the exact field name
+    // (medical_file, hse_file, or wqt_file) that Multer expects for validation clearance!
+    formDataPayload.append(gateField, actualFileBlob); 
+
+    try {
+        const loader = document.getElementById('portalGlobalLoader');
+        if (loader) {
+            loader.classList.remove('hidden'); 
+            loader.classList.add('flex', 'flex-col', 'items-center', 'justify-center');
+        }
+
+        const res = await fetch(`/mobilization/resubmit-file/${requestId}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formDataPayload
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+
+        showAlert("Correction document uploaded successfully! Gate returned to Pending review loops.", "success");
+        closeResubmitModal();
+        await loadSupplierDashboard(); 
+    } catch (err) { 
+        showAlert(err.message, "error"); 
+    } finally {
+        const loader = document.getElementById('portalGlobalLoader');
+        if (loader) { 
+            loader.classList.remove('flex', 'flex-col', 'items-center', 'justify-center'); 
+            loader.classList.add('hidden'); 
+        }
+    }
+}
     </script>
 </body>
 </html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAS_SUBCON - Medical Evaluation Deck</title>
+    <!-- Tailwind CSS Runtime CDN Engine Wrapper -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+        }
+    </script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased m-0 p-0">
+
+    <!-- 🌟 UNIFIED FLOATING OVERLAY TOAST NOTICE CONTAINER -->
+    <div id="statusBox" class="hidden fixed top-6 left-1/2 -translate-x-1/2 z-50 p-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-2xl border transition-all duration-300 transform scale-95 opacity-0" style="min-width: 22rem; pointer-events: none;"></div>
+    <!-- MAIN EVALUATION PROCESSING MODAL DIALOG (Hidden by default) -->
+    <div id="evaluationModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4 transition-all duration-200">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-4 transform scale-100 transition-all">
+            <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
+                <h3 class="text-md font-black text-white flex items-center gap-2">🩺 Process Health Clearance</h3>
+                <button type="button" onclick="closeEvaluationModal()" class="text-slate-500 hover:text-slate-300 text-sm font-bold bg-slate-950 px-2 py-1 rounded-lg transition border border-slate-800">ESC</button>
+            </div>
+            
+            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/40 space-y-1">
+                <div class="text-xs text-slate-400 font-medium">Evaluating Field Personnel:</div>
+                <div id="modalWorkerName" class="text-sm font-black text-emerald-400 uppercase tracking-wide">--</div>
+                <div id="modalCivilId" class="text-[10px] text-slate-500 font-mono font-bold">--</div>
+            </div>
+
+            <form id="medicReviewForm" class="space-y-4">
+                <input type="hidden" id="targetRequestId">
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Evaluation Assessment Review Notes</label>
+                    <textarea id="medic_notes" required rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none placeholder-slate-600" placeholder="Type internal clinical checking annotations or outline required corrections..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <button type="button" onclick="submitMedicDecision('Approved')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-95 border-none">
+                        Pass Medical
+                    </button>
+                    <button type="button" onclick="submitMedicDecision('Resubmit for Medic')" class="w-full bg-rose-600/20 hover:bg-rose-600 border border-rose-500/20 hover:border-transparent text-rose-400 hover:text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition active:scale-95">
+                        Order Resubmit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Master Application View Stack Header Layout Panel Row -->
+    <div class="flex flex-col w-full min-h-screen items-stretch justify-start">
+        <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 shadow-lg w-full shrink-0">
+            <div class="max-w-7xl mx-auto flex justify-between items-center w-full">
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                        <span>SAS_SUBCON</span>
+                        <span class="text-xs bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-500/30">Site Clinic</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">Medical Officer Verification Command Cockpit & Deployment Desk</p>
+                </div>
+                <button type="button" onclick="handleSystemLogout()" class="bg-slate-800 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700 shadow-md active:scale-[0.98]">
+                    Disconnect Session
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN LAYOUT SPACE -->
+        <main class="flex-1 w-full max-w-7xl mx-auto p-6 space-y-4 flex flex-col items-stretch">
+            
+            <!-- HIGH-UTILITY SEARCH BAR AND DYNAMIC URGENCY SEGMENTATION DECK -->
+            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 shadow-xl space-y-4 w-full flex flex-col">
+                <div style="display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; flex-wrap: wrap !important;">
+                    
+                    <!-- Keyword Text Input Selector -->
+                    <div class="relative w-full md:max-w-xs shrink-0" style="display: block !important; margin: 0 !important; max-width: 16rem !important; width: 100% !important;">
+                        <input type="text" id="searchInput" oninput="applyMedicFilters()" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-white focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="Search by name, civil ID...">
+                        <span class="absolute left-3.5 top-3.5 text-slate-500 text-xs">🔍</span>
+                    </div>
+
+                    <!-- STATUS ROUTING TABS: Displays verified documents history streams -->
+                    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 shrink-0 select-none" style="display: flex !important; flex-direction: row !important; gap: 4px !important; margin: 0 !important; align-items: center !important;">
+                        <button type="button" id="tabPendingBtn" onclick="setMedicStatusTab('Pending')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition bg-blue-600 text-white shadow border-none">Pending Queue</button>
+                        <button type="button" id="tabApprovedBtn" onclick="setMedicStatusTab('Approved')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">Cleared Pass</button>
+                        <button type="button" id="tabResubmitBtn" onclick="setMedicStatusTab('Resubmit')" class="px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">Corrections</button>
+                    </div>
+
+                    <!-- Urgency Processing Filter Tabs Matrix -->
+                    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 shrink-0 select-none" style="display: flex !important; flex-direction: row !important; gap: 4px !important; margin: 0 !important; align-items: center !important;">
+                        <button type="button" id="urgAllBtn" onclick="setUrgencyTabFilter('ALL')" class="px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition bg-slate-800 text-white shadow border-none">All Tiers</button>
+                        <button type="button" id="urgNormalBtn" onclick="setUrgencyTabFilter('Normal')" class="px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">Normal</button>
+                        <button type="button" id="urgUrgentBtn" onclick="setUrgencyTabFilter('Urgent')" class="px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">🚨 Urgent</button>
+                        <button type="button" id="urgCriticalBtn" onclick="setUrgencyTabFilter('Critical Emergency')" class="px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition text-slate-400 hover:text-slate-200 border-none">🔥 Critical</button>
+                    </div>
+
+                    <div class="text-xs text-slate-400 font-semibold bg-slate-900 px-3 py-2 rounded-lg border border-slate-800 tracking-wide shrink-0" style="display: block !important; margin: 0 !important;">
+                        Records Displayed: <span id="recordCount" class="text-blue-400 font-black">0</span>
+                    </div>
+                </div>
+            </div>
+            <!-- ADMINISTRATIVE RECORDS VIEW DIR GRID CONTAINER -->
+            <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col w-full">
+                <div class="overflow-x-auto w-full">
+                    <table class="w-full text-left border-collapse min-w-[850px]">
+                        <thead>
+                            <tr class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                                <th class="px-6 py-4">Bio Profile Details</th>
+                                <th class="px-6 py-4">Contractor & Allocation</th>
+                                <th class="px-6 py-4 text-center">Priority Scope</th>
+                                <th class="px-6 py-4 text-center">Verification Targets</th>
+                                <th class="px-6 py-4 text-center">Action Gateway</th>
+                            </tr>
+                        </thead>
+                        <tbody id="medicTableBody" class="divide-y divide-slate-800/60 text-sm font-medium text-slate-300">
+                            <!-- JavaScript rows paint cleanly here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const token = localStorage.getItem('token');
+        let pendingMobilizationsDataset = [];
+        let currentMedicTabFilter = 'Pending';
+        let selectedUrgencyFilter = 'ALL';
+
+        // Perimeter security gateway checking run
+        if (!token) { window.location.href = "/user/login-page"; }
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // READ PIPELINES: STREAM ACTIVE MOBILIZATIONS UNRESTRICTED FOR TAB SORTING
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        async function fetchActiveMedicReviewQueue() {
+            try {
+                const res = await fetch('/admin-review/medic/pending', { 
+                    method: 'GET', 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+                
+                pendingMobilizationsDataset = data.requests || [];
+                applyMedicFilters();
+            } catch (err) { showAlert(err.message, "error"); }
+        }
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // MULTI-FILTER SIFT ENGINE: SEPARATES STATUSES CASE-INSENSITIVELY NATIVELY
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function applyMedicFilters() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            const filtered = pendingMobilizationsDataset.filter(req => {
+                // 1. Resolve Multi-Gate Status parameters matching case-insensitively
+                const medStatus = (req.medical_status || "Pending").trim();
+                let tabMatch = false;
+
+                if (currentMedicTabFilter === 'Pending') {
+                    tabMatch = medStatus === 'Pending' || medStatus === null || medStatus === undefined;
+                } else if (currentMedicTabFilter === 'Approved') {
+                    tabMatch = medStatus === 'Approved';
+                } else if (currentMedicTabFilter === 'Resubmit') {
+                    tabMatch = medStatus === 'Resubmit';
+                }
+
+                // 2. Resolve Urgency priority level parameters matching bounds
+                const urgencyMatch = (selectedUrgencyFilter === 'ALL') || (req.urgency === selectedUrgencyFilter);
+                
+                // 3. Resolve keyword text string lookup parameters query matching values
+                const empName = (req.employee_name || "").toLowerCase();
+                const civilId = (req.civil_id || "");
+                const subconName = req.sub_company_id && req.sub_company_id.supplier_name ? req.sub_company_id.supplier_name.toLowerCase() : "";
+                const tradeTitle = req.designation_id && req.designation_id.title ? req.designation_id.title.toLowerCase() : "";
+
+                const searchMatch = empName.includes(searchVal) || civilId.includes(searchVal) || subconName.includes(searchVal) || tradeTitle.includes(searchVal);
+
+                return tabMatch && urgencyMatch && searchMatch;
+            });
+
+            renderMedicGridTable(filtered);
+        }
+
+        function setMedicStatusTab(tabType) {
+            currentMedicTabFilter = tabType;
+            const tPen = document.getElementById('tabPendingBtn');
+            const tApp = document.getElementById('tabApprovedBtn');
+            const tRes = document.getElementById('tabResubmitBtn');
+
+            if (tPen) tPen.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Pending' ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tApp) tApp.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Approved' ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tRes) tRes.className = "px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition border-none " + (tabType === 'Resubmit' ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-slate-200");
+
+            applyMedicFilters();
+        }
+
+        function setUrgencyTabFilter(urgencyType) {
+            selectedUrgencyFilter = urgencyType;
+            const tAll = document.getElementById('urgAllBtn');
+            const tNorm = document.getElementById('urgNormalBtn');
+            const tUrg = document.getElementById('urgUrgentBtn');
+            const tCrit = document.getElementById('urgCriticalBtn');
+
+            if (tAll) tAll.className = "px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition border-none " + (urgencyType === 'ALL' ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tNorm) tNorm.className = "px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition border-none " + (urgencyType === 'Normal' ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tUrg) tUrg.className = "px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition border-none " + (urgencyType === 'Urgent' ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-slate-200");
+            if (tCrit) tCrit.className = "px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition border-none " + (urgencyType === 'Critical Emergency' ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-slate-200");
+
+            applyMedicFilters();
+        }
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // DOM ROW WRITER PANEL: ALIGNS ITEMS HORIZONTALLY AND FORMATS TIMESTAMPS
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function renderMedicGridTable(arr) {
+            const tbody = document.getElementById('medicTableBody');
+            document.getElementById('recordCount').innerText = arr.length;
+            tbody.innerHTML = '';
+
+            if (arr.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-slate-500 italic text-xs">No personnel records currently pending clinical review checks under this parameter.</td></tr>`;
+                return;
+            }
+
+            arr.forEach(req => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/30 border-b border-slate-800/40 text-xs transition items-center";
+
+                let urgencyBadge = 'bg-slate-800 text-slate-400 border-slate-700';
+                if (req.urgency === 'Urgent') urgencyBadge = 'bg-amber-500/10 text-amber-400 border-amber-500/20 font-black';
+                else if (req.urgency && req.urgency.includes('Critical')) urgencyBadge = 'bg-rose-500/10 text-rose-400 border-rose-500/20 font-black animate-pulse';
+
+                const creationDateRaw = req.createdAt ? new Date(req.createdAt) : new Date();
+                const formattedSubmissionDate = creationDateRaw.toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+
+                const subName = req.sub_company_id ? (req.sub_company_id.supplier_name || 'Direct Subcon') : 'Direct Subcon';
+                const destSite = req.target_site_id ? (req.target_site_id.site_name || 'Base Site') : 'Base Site';
+                const tradeRole = req.designation_id ? (req.designation_id.title || 'Expatriate Labor') : 'Expatriate Labor';
+
+                let wqtMarkup = '';
+                if (req.wqt_file_url) {
+                    wqtMarkup = `<a href="${req.wqt_file_url}" target="_medic_view" class="bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded font-bold tracking-wide hover:bg-rose-600 hover:text-white transition">WQT Card</a>`;
+                }
+
+                // Conditional decision button locks depending on gate states
+                let actionCellMarkup = `<span class="text-emerald-400 font-extrabold bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 uppercase tracking-wide select-none">Passed</span>`;
+                
+                if (req.medical_status === 'Resubmit') {
+                    actionCellMarkup = `<span class="text-rose-400 font-extrabold bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20 uppercase tracking-wide select-none">Rejected</span>`;
+                } else if (req.medical_status === 'Pending' || !req.medical_status) {
+                    actionCellMarkup = `
+                        <button onclick="openEvaluationModal('${req._id}', '${req.employee_name.replace(/'/g, "\\'")}', '${req.civil_id}')" class="bg-blue-600 hover:bg-blue-500 text-white font-black px-4 py-2 rounded-xl uppercase tracking-wider text-[10px] transition border-none shadow-md shadow-blue-600/10 active:scale-95">
+                            Evaluate
+                        </button>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="px-6 py-4 vertical-align-middle">
+                        <div class="font-black text-white text-xs uppercase tracking-wide">${req.employee_name}</div>
+                        <div class="font-mono text-[10px] text-slate-500 font-bold mt-0.5">CIVIL: ${req.civil_id} (${req.nationality || 'Expat'})</div>
+                        <div class="text-[10px] text-slate-400 font-medium mt-1">🎂 DOB: ${req.dob ? new Date(req.dob).toLocaleDateString('en-GB') : '--'}</div>
+                        <div class="text-[10px] text-blue-400/80 font-semibold mt-1.5 flex items-center gap-1">
+                            📅 Logged: <span class="text-slate-300 font-mono">${formattedSubmissionDate}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 vertical-align-middle">
+                        <div class="text-xs font-extrabold text-slate-300 capitalize">${tradeRole}</div>
+                        <div class="text-[10px] text-slate-500 font-bold mt-0.5">🏭 Firm: ${subName.toUpperCase()}</div>
+                        <div class="text-[10px] text-slate-400 font-semibold mt-1">📍 Dest: ${destSite.toUpperCase()} (Bed: ${req.accommodation_type || '--'})</div>
+                    </td>
+                    <td class="px-6 py-4 text-center vertical-align-middle" style="text-align: center !important;">
+                        <div class="inline-flex justify-center items-center w-full">
+                            <span class="px-2.5 py-1 rounded-xl border text-[10px] uppercase font-black tracking-wider ${urgencyBadge} select-none">
+                                ${req.urgency || 'Normal'}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center vertical-align-middle" style="text-align: center !important;">
+                        <div class="flex gap-1.5 justify-center items-center flex-wrap w-full">
+                            <a href="${req.medical_file_url}" target="_medic_view" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded-xl font-black tracking-wide hover:bg-blue-600 hover:text-white transition text-[10px] border-none">Medical PDF</a>
+                            ${wqtMarkup}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-center vertical-align-middle" style="text-align: center !important;">
+                        <div class="inline-flex justify-center items-center w-full">
+                            ${actionCellMarkup}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        // TRANSACTION DISPATCHERS: SAVES NOTES AND CLOSES MODALS CLEANLY
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        function openEvaluationModal(id, name, civilId) {
+            document.getElementById('targetRequestId').value = id;
+            document.getElementById('modalWorkerName').innerText = name;
+            document.getElementById('modalCivilId').innerText = `CIVIL ID PARAMETER REFERENCE: ${civilId}`;
+            document.getElementById('medic_notes').value = '';
+            
+            const modal = document.getElementById('evaluationModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeEvaluationModal() {
+            const modal = document.getElementById('evaluationModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function submitMedicDecision(decisionValue) {
+            const requestId = document.getElementById('targetRequestId').value;
+            const comments = document.getElementById('medic_notes').value.trim();
+
+            if (!comments) {
+                showAlert("Clinical evaluation notes are mandatory fields.", "error");
+                return;
+            }
+
+            try {
+                const res = await fetch('/admin-review/medic/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ requestId, decision: decisionValue, comments })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message);
+
+                showAlert(`Clinical verdict logged successfully! Status marked as: ${decisionValue}`, "success");
+                closeEvaluationModal();
+                await fetchActiveMedicReviewQueue(); 
+            } catch (err) { showAlert(err.message, "error"); }
+        }
+
+        function showAlert(msg, type) {
+            const sb = document.getElementById('statusBox'); if (!sb) return;
+            sb.innerText = msg;
+            if (type === 'success') {
+                sb.style.backgroundColor = '#020617'; sb.style.color = '#34d399'; sb.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                sb.style.boxShadow = '0 20px 25px -5px rgba(16, 185, 129, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.5)';
+            } else {
+                sb.style.backgroundColor = '#020617'; sb.style.color = '#f87171'; sb.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+                sb.style.boxShadow = '0 20px 25px -5px rgba(244, 63, 94, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.5)';
+            }
+            sb.classList.remove('hidden', 'scale-95', 'opacity-0'); sb.classList.add('scale-100', 'opacity-100');
+            setTimeout(() => {
+                sb.classList.remove('scale-100', 'opacity-100'); sb.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => { sb.classList.add('hidden'); }, 300);
+            }, 3000);
+        }
+
+        async function handleSystemLogout() {
+            localStorage.clear(); window.location.href = "/user/login-page";
+        }
+
+        // ⚡ FIXED: Wrapped inside DOMContentLoaded event listener to prevent execution races
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchActiveMedicReviewQueue();
+        });
+    </script>
+</body>
+</html>

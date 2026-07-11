@@ -6,8 +6,8 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 
+
 const createMobilizationRequest = async (req, res) => {
-    // Keep a listing tracking array of local files to clean up on execution exit loops
     const temporaryFilesToCleanup = [];
 
     try {
@@ -17,16 +17,24 @@ const createMobilizationRequest = async (req, res) => {
             sponsor_company, urgency 
         } = req.body;
 
-        const sub_company_id = req.user.supplier_id || req.user.supplierId; 
-        if (!sub_company_id) return res.status(401).json({ message: "Session token missing subcontractor supplier link." });
+        const sub_company_id = 
+            req.user.supplier_id || 
+            req.user.supplierId || 
+            req.user.sub_company_id || 
+            req.user.id || 
+            req.user.userid; 
 
-        if (!civil_id || !employee_name || !nationality || !dob || !mobile_number || !designation_id || !civil_expire || !accommodation_type || !target_site_id || !sponsor_company) {
-            return res.status(400).json({ message: "All employee registration details and expiration fields are mandatory." });
+        if (!sub_company_id) {
+            return res.status(401).json({ message: "Authorization Blocked! Session missing supplier link." });
         }
 
-        // Validate physical multi-part document files presence logs
+        if (!civil_id || !employee_name || !nationality || !dob || !mobile_number || !designation_id || !civil_expire || !accommodation_type || !target_site_id || !sponsor_company) {
+            return res.status(400).json({ message: "All required fields are mandatory." });
+        }
+
+        // 🌟 SAFETY GUARD A: Ensure req.files handles are populated by Multer fields middleware
         if (!req.files || !req.files.medical_file || !req.files.hse_file) {
-            return res.status(400).json({ message: "Upload Blocked! Both physical Medical and HSE PDF files must be attached." });
+            return res.status(400).json({ message: "Upload Blocked! You must attach physical Medical and HSE PDF documents." });
         }
 
         // Initialize the native official GridFS Bucket instance seamlessly
@@ -34,10 +42,17 @@ const createMobilizationRequest = async (req, res) => {
             bucketName: "workforce_docs"
         });
 
-        // HELPER SUB-ENGINE: Streams buffered disk storage data smoothly into MongoDB chunks
-        const streamFileToGridFS = (fileObject) => {
+        // HELPER SUB-ENGINE: Extracts file path from first element of array before streaming data chunks
+        const streamFileToGridFS = (fileArrayWrapper) => {
             return new Promise((resolve, reject) => {
-                temporaryFilesToCleanup.push(fileObject.path); // Add to cleanup list array tracking
+                // 🌟 CRITICAL RE-ALIGNMENT: Extract the 1st individual file object from Multer's fields array!
+                const fileObject = Array.isArray(fileArrayWrapper) ? fileArrayWrapper[0] : fileArrayWrapper;
+                
+                if (!fileObject || !fileObject.path) {
+                    return reject(new Error("File structural extraction mismatch! Binary upload target is undefined."));
+                }
+
+                temporaryFilesToCleanup.push(fileObject.path);
                 
                 const uploadStream = bucket.openUploadStream(`${Date.now()}-${fileObject.filename}`, {
                     contentType: fileObject.mimetype
@@ -50,39 +65,53 @@ const createMobilizationRequest = async (req, res) => {
             });
         };
 
-        // Stream required documentation packets concurrently
-        const medical_file_url = await streamFileToGridFS(req.files.medical_file[0]);
-        const hse_file_url = await streamFileToGridFS(req.files.hse_file[0]);
+        // 🌟 FIXED STREAM DISPATCH: Send the fields arrays directly to the revised destructuring handler
+        const medical_file_url = await streamFileToGridFS(req.files.medical_file);
+        const hse_file_url = await streamFileToGridFS(req.files.hse_file);
 
-        // Process dynamic specialized Welder checking parameters rules
+        // Fetch selected trade classification data to evaluate welder requirements
         const tradeProfile = await Designation.findById(designation_id);
         const isWelderTrade = tradeProfile && tradeProfile.title.toLowerCase().includes("welder");
+        
         let assignedWqtComment = "Not Required for this Trade";
+        let assignedWqtStatus = "Not Required";
         let verifiedWqtUrl = "";
 
         if (isWelderTrade) {
             if (!req.files.wqt_file) {
-                throw new Error("Welder job classifications require uploading a valid physical WQT certification card PDF.");
+                throw new Error("Compliance Verification Blocked! Welder trade designations require a valid physical WQT card PDF upload.");
             }
-            verifiedWqtUrl = await streamFileToGridFS(req.files.wqt_file[0]);
+            verifiedWqtUrl = await streamFileToGridFS(req.files.wqt_file);
             assignedWqtComment = "Pending Welder Review Team Evaluation";
+            assignedWqtStatus = "Pending";
         }
 
         const cleanCivilId = civil_id.trim();
         const isBlacklisted = await Blacklist.findOne({ civil_id: cleanCivilId });
-        if (isBlacklisted) return res.status(403).json({ message: `Civil ID '${cleanCivilId}' is permanently blacklisted.` });
+        if (isBlacklisted) {
+            return res.status(403).json({ message: `Deployment Blocked! Employee is blacklisted.` });
+        }
 
-        const activeQueueCheck = await MobilizationRequest.findOne({ civil_id: cleanCivilId, status: "Under Review" });
-        if (activeQueueCheck) return res.status(400).json({ message: "An application packet for this worker is already active inside review queues." });
+        const activeQueueCheck = await MobilizationRequest.findOne({ 
+            civil_id: cleanCivilId, 
+            status: { $in: ["Under Review", "Resubmit Required"] } 
+        });
+        
+        if (activeQueueCheck) {
+            return res.status(400).json({ message: "Duplicate registration! An active package for this worker already exists in queue." });
+        }
 
         const initialLogEntry = {
-            action: "Submitted", by_user: req.user.userid || req.user.id || "Supplier Portal", timestamp: new Date().toISOString(), notes: "Initial documentation packet successfully registered to database storage bucket."
+            action: "Submitted",
+            by_user: req.user.userid || req.user.id || "Supplier Portal",
+            timestamp: new Date().toISOString(),
+            notes: `Initial package cataloged with physical documents.`
         };
 
         const newRequest = new MobilizationRequest({
             civil_id: cleanCivilId,
             employee_name: employee_name.trim(),
-            nationality,
+            nationality: nationality.trim(),
             dob: new Date(dob),
             mobile_number: mobile_number.trim(),
             designation_id: new mongoose.Types.ObjectId(designation_id),
@@ -95,28 +124,30 @@ const createMobilizationRequest = async (req, res) => {
             hse_file_url,     
             wqt_file_url: verifiedWqtUrl, 
             wqt_comment: assignedWqtComment,
-            status: "Under Review", urgency: urgency || "Normal", submission_history: [initialLogEntry]
+            medical_status: "Pending",
+            hse_status: "Pending",
+            wqt_status: assignedWqtStatus,
+            status: "Under Review", 
+            urgency: urgency || "Normal", 
+            submission_history: [initialLogEntry]
         });
 
         await newRequest.save();
 
-        // 🌟 SUCCESS: Run automated storage cleanup on buffered temporary local files instantly
         temporaryFilesToCleanup.forEach(filePath => {
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         });
 
-        res.status(201).json({ message: "Workforce mobilization request package registered successfully!", request: newRequest });
+        res.status(201).json({ message: "Workforce mobilization request registered successfully!", request: newRequest });
 
     } catch (error) {
-        // FAIL GUARD: Clear out temporary file buffers if a validation fault blocks the save transaction
         temporaryFilesToCleanup.forEach(filePath => {
             if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         });
-        res.status(500).json({ message: "Error compiling mobilization records parameters", error: error.message });
+        console.error("CRITICAL PACKET DISPATCH FAILURE LOG:", error);
+        res.status(500).json({ message: "Error compiling mobilization record", error: error.message });
     }
 };
-
-
 
 // 2. FETCH HISTORICAL MOBILIZATION LOGS FOR THE SPECIFIC LOGGED SUPPLIER ONLY
 const getSupplierOwnMobilizations = async (req, res) => {
@@ -281,9 +312,119 @@ const resubmitMobilizationDocuments = async (req, res) => {
     }
 };
 
+const getRequestDetailedContext = async (req, res) => {
+    try {
+        const targetId = req.params.id;
+
+        if (!mongoose.Types.ObjectId.isValid(targetId)) {
+            return res.status(400).json({ message: "Invalid request tracking reference key format." });
+        }
+
+        const requestDoc = await MobilizationRequest.findById(targetId)
+            .populate("designation_id", "title risk_level description")
+            .populate("target_site_id", "site_name location site_code manager_name contact_number")
+            .populate("sub_company_id", "supplier_name registration_number contact_person cell_number");
+            
+        // 🌟 ARCHITECTURAL UPGRADE: If by_user matches an ID string format, 
+        // manually query the User collection right here to fetch their real profile name string cleanly!
+        if (requestDoc && requestDoc.submission_history) {
+            const User = require("../models/user"); // Local model context binding
+            
+            for (let log of requestDoc.submission_history) {
+                // If by_user is a valid 24-character hex ObjectId layout handle string
+                if (log.by_user && mongoose.Types.ObjectId.isValid(log.by_user.toString())) {
+                    const userProfileRow = await User.findById(log.by_user).select("name role");
+                    if (userProfileRow) {
+                        // Hydrate the string parameter into a rich metadata object template array structure
+                        log.by_user = {
+                            name: userProfileRow.name,
+                            role: userProfileRow.role
+                        };
+                    }
+                }
+            }
+        }
+
+        if (!requestDoc) {
+            return res.status(404).json({ message: "Requested worker deployment profile pack not found." });
+        }
+
+        res.status(200).json({ request: requestDoc });
+    } catch (error) {
+        res.status(500).json({ message: "Error compiling expanded record parameters", error: error.message });
+    }
+};
+
+// 🌟 BACKEND CONTROLLER: OVERWRITES THE STALE FILE CHUNKS AND RESETS TARGET GATE PRIVILEGES TO PENDING
+const resubmitWorkerDocumentCorrection = async (req, res) => {
+    try {
+        const targetId = req.params.id;
+        const { targetField } = req.body; // Tells us whether it's 'medical_file', 'hse_file', or 'wqt_file'
+
+        const targetRequest = await MobilizationRequest.findById(targetId);
+        if (!targetRequest) return res.status(404).json({ message: "Record index target not found." });
+
+        // Handle file mapping from Multer fields parsing middleware layout layers
+        let uploadedFileObject = null;
+        if (req.files && req.files.correction_file) uploadedFileObject = req.files.correction_file[0];
+        else if (req.files && req.files.medical_file) uploadedFileObject = req.files.medical_file[0];
+        else if (req.files && req.files.hse_file) uploadedFileObject = req.files.hse_file[0];
+        else if (req.files && req.files.wqt_file) uploadedFileObject = req.files.wqt_file[0];
+
+        if (!uploadedFileObject) return res.status(400).json({ message: "Resubmission blocked! No valid physical PDF attachment received." });
+
+        const bucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, { bucketName: "workforce_docs" });
+
+        const uploadStream = bucket.openUploadStream(`${Date.now()}-CORRECTION-${uploadedFileObject.filename}`, {
+            contentType: uploadedFileObject.mimetype
+        });
+
+        fs.createReadStream(uploadedFileObject.path)
+            .pipe(uploadStream)
+            .on("finish", async () => {
+                const freshHostedUrl = `/mobilization/file/${uploadStream.id}`;
+
+                // Clean up temporary disk buffers artifact
+                if (fs.existsSync(uploadedFileObject.path)) fs.unlinkSync(uploadedFileObject.path);
+
+                // 🌟 UPGRADE SYNC: Update file URL paths strings and flip respective statuses back to Pending!
+                if (targetField === 'medical_file') {
+                    targetRequest.medical_file_url = freshHostedUrl;
+                    targetRequest.medical_status = "Pending";
+                    targetRequest.medical_comment = "Fresh correction document uploaded by contractor.";
+                } else if (targetField === 'hse_file') {
+                    targetRequest.hse_file_url = freshHostedUrl;
+                    targetRequest.hse_status = "Pending";
+                    targetRequest.hse_comment = "Fresh correction document uploaded by contractor.";
+                } else if (targetField === 'wqt_file') {
+                    targetRequest.wqt_file_url = freshHostedUrl;
+                    targetRequest.wqt_status = "Pending";
+                    targetRequest.wqt_comment = "Fresh correction document uploaded by contractor.";
+                }
+
+                targetRequest.status = "Under Review"; // Return back into evaluation queues lines
+                targetRequest.submission_history.push({
+                    action: "Resubmitted",
+                    by_user: req.user.id || "Supplier Portal",
+                    timestamp: new Date().toISOString(),
+                    notes: `Resubmitted fresh correction document file for gate path channel: ${targetField.toUpperCase()}`
+                });
+
+                await targetRequest.save();
+                return res.status(200).json({ message: "Success!", request: targetRequest });
+            });
+
+    } catch (error) {
+        res.status(500).json({ message: "Error running correction transmittals", error: error.message });
+    }
+};
+
+
 module.exports = { 
     createMobilizationRequest, 
     getSupplierOwnMobilizations, 
     dropMobilizationRequest, 
-    resubmitMobilizationDocuments 
+    resubmitMobilizationDocuments,
+    getRequestDetailedContext,
+    resubmitWorkerDocumentCorrection
 };

@@ -190,6 +190,54 @@ const updateSupplierId = async (req, res) => {
     }
 };
 
+// ✏️ ADDED: 8. UPDATE OPERATION: EDIT PERSONNEL Privileges & PROFILE INDICES
+const updateUserProfile = async (req, res, next) => {
+    try {
+        const targetId = req.params.id;
+        const { name, email, role, site_id, supplier_id, cell_number } = req.body;
+
+        // 1. Locate the targeted account document within your collection channels
+        const user = await User.findById(targetId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Target personnel security profile row not found." });
+        }
+
+        // 2. Shield email fields from matching duplicate key conflicts across documents
+        if (email && email.toLowerCase() !== user.email) {
+            const conflictMatch = await User.findOne({ email: email.toLowerCase().trim() });
+            if (conflictMatch) {
+                return res.status(400).json({ success: false, message: "This email address is already locked by another user profile matrix." });
+            }
+            user.email = email.toLowerCase().trim();
+        }
+
+        // 3. Mutate standard string properties safely
+        if (name) user.name = name.trim();
+        if (cell_number) user.cell_number = cell_number.trim();
+        if (role) user.role = role;
+
+        // 4. Restructure site and supplier relational allocation references matching your model roles logic
+        if (role || site_id !== undefined || supplier_id !== undefined) {
+            const activeRole = role || user.role;
+            if (['HO', 'ERP_TEAM', 'DEVELOPER'].includes(activeRole)) {
+                user.site_id = null;
+                user.supplier_id = null;
+            } else if (activeRole === 'SUPPLIER') {
+                if (supplier_id) user.supplier_id = new mongoose.Types.ObjectId(supplier_id.trim());
+                user.site_id = null;
+            } else {
+                if (site_id) user.site_id = new mongoose.Types.ObjectId(site_id.trim());
+                user.supplier_id = null;
+            }
+        }
+
+        await user.save();
+        res.status(200).json({ success: true, message: "User credentials and operational scopes updated successfully.", user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error updating target user registration indexes", error: error.message });
+    }
+};
+
 module.exports = { 
     welcometouser, 
     createUser, 
@@ -197,5 +245,6 @@ module.exports = {
     toggleUserAccountStatus, 
     loginUser, 
     logoutUser, 
-    updateSupplierId 
+    updateSupplierId,
+    updateUserProfile 
 };

@@ -1,5 +1,6 @@
 const MobilizationRequest = require("../models/mobilization_request");
 const SubcontractorEmployee = require("../models/subcontractor_employee");
+const mongoose = require("mongoose");
 const { purgeWorkforceBinaryFiles } = require("../utils/document_purger"); // 🌟 Import your purger utility
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -175,4 +176,91 @@ const allocateSiteAccommodation = async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 };
 
-module.exports = { evaluateSiteComplianceDocs, processHeadOfficeApproval, allocateSiteAccommodation };
+const getPendingMedicRequests = async (req, res) => {
+    try {
+        const reviewerRole = req.user.role;
+        const siteContextId = req.user.site_id || req.user.siteId;
+
+        const queryFilter = {
+            // 🌟 RE-ENGINEERED: Pulls every request active under review so the frontend tabs can sort history instantly!
+            status: { $in: ["Under Review", "Resubmit Required", "Pending HO Approval", "Pending Site Admin", "Approved"] }
+        };
+
+        if (reviewerRole !== "HO" && reviewerRole !== "DEVELOPER" && reviewerRole !== "ERP_TEAM", reviewerRole !== "SUPPLIER") {
+            if (!siteContextId) return res.status(400).json({ message: "Access Denied! Missing Site ID allocation link." });
+            queryFilter.target_site_id = new mongoose.Types.ObjectId(siteContextId);
+        }
+
+        const pendingQueue = await MobilizationRequest.find(queryFilter)
+            .populate("designation_id", "title risk_level")
+            .populate("target_site_id", "site_name location site_code")
+            .populate("sub_company_id", "supplier_name registration_number")
+            .sort({ urgency: -1, createdAt: -1 });
+
+        res.status(200).json({ count: pendingQueue.length, requests: pendingQueue });
+    } catch (error) {
+        res.status(500).json({ message: "Error reading clinical queue", error: error.message });
+    }
+};
+
+// 2. PROCESS CLINICAL VERDICT: UPDATE EXPLICIT MOVEMENT GATE ATTRIBUTES
+const evaluateMedicRequest = async (req, res) => {
+    try {
+        const { requestId, decision, comments } = req.body;
+
+        if (!requestId || !decision || !comments) {
+            return res.status(400).json({ message: "Target Request ID tracking index, evaluation decision, and clinical review notes are mandatory." });
+        }
+
+        const targetRequest = await MobilizationRequest.findById(requestId);
+        if (!targetRequest) {
+            return res.status(404).json({ message: "Workforce mobilization tracking packet not found in system databases." });
+        }
+
+        // Prevent structural modifications if it already reached a finalized terminal state
+        if (targetRequest.status === "Approved" || targetRequest.status === "Cancelled") {
+            return res.status(400).json({ message: `Transaction Blocked! Packet is already in a terminal state (${targetRequest.status}).` });
+        }
+
+        // 🌟 THE UPGRADE ARCHITECTURE: Update fields based on explicit decision inputs
+        if (decision === "Approved") {
+            // Medical gate locks to Approved! Universal status stays "Under Review" so it populates the HSE safety queue natively
+            targetRequest.medical_status = "Approved";
+            targetRequest.medical_comment = `MEDICAL PASSED: ${comments.trim()}`;
+            
+            // Check if all other gates are also approved before advancing global lifecycle
+            if (targetRequest.hse_status === "Approved" && (targetRequest.wqt_status === "Approved" || targetRequest.wqt_status === "Not Required")) {
+                targetRequest.status = "Pending HO Approval";
+            } else {
+                targetRequest.status = "Under Review";
+            }
+        } else if (decision === "Resubmit for Medic") {
+            // 🌟 ARCHITECTURAL FIX ALIGNED WITH YOUR ENUM:
+            // 1. Mark the individual Medical gate field as "Resubmit"
+            targetRequest.medical_status = "Resubmit";
+            
+            // 2. Keep the global status as "Under Review" so it perfectly matches your active schema enum options arrays!
+            targetRequest.status = "Under Review"; 
+            
+            targetRequest.medical_comment = `MEDICAL REJECTED: ${comments.trim()}`;
+        }
+
+        // Log transaction snapshot inside historical tracking history array maps
+        targetRequest.submission_history.push({
+            action: decision,
+            by_user: req.user.id || req.user.userid || "Site Clinic Console",
+            timestamp: new Date().toISOString(),
+            notes: `Medical tier evaluation logged: ${decision}. Notes: ${comments.trim()}`
+        });
+
+        await targetRequest.save();
+        res.status(200).json({ message: "Clinical evaluation review verdict saved and logged successfully!", request: targetRequest });
+
+    } catch (error) {
+        console.error("FATAL ERROR IN MEDIC EVALUATION CONTROLLER:", error);
+        res.status(500).json({ message: "Error compiling clinical evaluation transaction overrides", error: error.message });
+    }
+};
+
+
+module.exports = { evaluateSiteComplianceDocs, processHeadOfficeApproval, allocateSiteAccommodation, getPendingMedicRequests, evaluateMedicRequest };
