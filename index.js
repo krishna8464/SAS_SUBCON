@@ -28,8 +28,11 @@ app.use(cors({ origin: "*" }));
 
 // Base Route Root
 app.get("/", async(req, res) => {
-    try { res.send("Welcome to the SAS Management"); } 
-    catch (error) { res.send("something went wrong"); }
+    try {
+        return res.redirect("/user/login-page");
+    } catch (error) {
+        return res.redirect("/user/login-page");
+    }
 });
 
 // Mounted Application Gateways API Modules
