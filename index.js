@@ -9,18 +9,22 @@ const { AdminReviewRoute } = require("./routes/admin_review_route");
 
 require("dotenv").config();
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const path = require("path");
 const { logger } = require("./middleware/logger");
 const { errorHandler } = require("./middleware/errorhandler"); // Keep import here
 
 const app = express();
+const PORT = Number(process.env.PORT) || 9002;
+
 app.use(express.json());
-// 🌟 FIXED: Removed errorHandler from this line slot right here!
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cors({ origin : "*" }));
+app.use(cors({ origin: "*" }));
 
 // Base Route Root
 app.get("/", async(req, res) => {
@@ -44,11 +48,11 @@ app.use(logger, (req, res) => {
 // 🌟 FIXED: MOUNTED ERROR HANDLER HERE AT THE ABSOLUTE BOTTOM TO WORK CORRECTLY
 app.use(errorHandler);
 
-app.listen(process.env.port, async () => {
+app.listen(PORT, async () => {
     try {
         await connection;
         console.log("server is connect to DB");
-        console.log(`server is connected to ${process.env.port}`);
+        console.log(`server is connected to ${PORT}`);
     } catch (error) {
         console.log(error);
         console.log("Not able to connect to DB");

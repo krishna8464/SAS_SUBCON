@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-const connection = mongoose.connect(process.env.Mongo_url);
+const mongoUrl = process.env.MONGO_URL || process.env.Mongo_url || "mongodb://127.0.0.1:27017/sas_subcon";
+const connection = mongoose.connect(mongoUrl);
 
 let gfsBucket;
 

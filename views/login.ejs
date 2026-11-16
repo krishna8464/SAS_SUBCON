@@ -6,6 +6,11 @@
     <title>SAS_SUBCON - Portal Authentication</title>
     <!-- 1. Local Fallback Static Stylesheet Link -->
     <link rel="stylesheet" href="/css/style.css">
+    <script>
+        if (localStorage.getItem('token')) {
+            window.location.replace('/user/dashboard-view');
+        }
+    </script>
     <!-- 2. Tailwind CSS Runtime Engine Script CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -126,24 +131,7 @@
 
                 // DYNAMIC ROLE GATE ROUTER: Evaluates account credentials and routes to specific workspace landing pages
                 setTimeout(() => {
-                    const userRole = data.user.role;
-
-                    if (userRole === 'SUPPLIER') {
-                        // 🏭 Subcontractor coordination ticket upload desk
-                        window.location.href = "/mobilization/portal"; 
-                    } else if (['HO', 'DEVELOPER', 'ERP_TEAM'].includes(userRole)) {
-                        // 🏢 Central management and developers go straight to the User Directory card interface
-                        window.location.href = "/user/manage-users";
-                    } else if (userRole === 'SITE_MEDIC') {
-                        // 🩺 Medical Clearance officers map straight to their dedicated active clinical queue grid
-                        window.location.href = "/user/medic-dashboard";
-                    } else if (userRole === 'SITE_HSE') {
-                        // 🛡️ Safety Clearance officers route straight to their upcoming safety validation dashboard
-                        window.location.href = "/user/hse-dashboard";
-                    } else {
-                        // 📍 Fallback structural operations route path matching your baseline environment settings
-                        window.location.href = "/site/manage-sites";
-                    }
+                    window.location.href = "/user/dashboard-view";
                 }, 1200);
 
             } catch (err) {

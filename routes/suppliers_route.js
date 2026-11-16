@@ -1,10 +1,11 @@
 const express = require("express");
 const { createSupplier, getAllSuppliers, getSupplierById, updateSupplier, deleteSupplier } = require("../controllers/suppliers_controller");
 const { authMiddleware } = require("../middleware/auth");
+const { authorizeRoles } = require("../middleware/role_access");
 
 const Supplierroute = express.Router();
 
-Supplierroute.get("/manage-suppliers", (req, res) => res.render("manage_suppliers"));
+Supplierroute.get("/manage-suppliers", authMiddleware, authorizeRoles('HO', 'ERP_TEAM', 'DEVELOPER'), (req, res) => res.render("manage_suppliers"));
 Supplierroute.post("/create", authMiddleware, createSupplier);
 Supplierroute.get("/all", authMiddleware, getAllSuppliers);
 Supplierroute.get("/:id", authMiddleware, getSupplierById);

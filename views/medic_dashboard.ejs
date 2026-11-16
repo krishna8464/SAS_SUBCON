@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS_SUBCON - Medical Evaluation Deck</title>
+    <script src="/js/auth_guard.js"></script>
     <!-- Tailwind CSS Runtime CDN Engine Wrapper -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -20,7 +21,7 @@
     <div id="evaluationModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 flex items-center justify-center p-4 transition-all duration-200">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl space-y-4 transform scale-100 transition-all">
             <div class="flex justify-between items-center border-b border-slate-800/60 pb-3">
-                <h3 class="text-md font-black text-white flex items-center gap-2">🩺 Process Health Clearance</h3>
+                <h3 class="text-md font-black text-white flex items-center gap-2"><span id="evaluationTitleIcon">🩺</span> <span id="evaluationTitleText">Process Health Clearance</span></h3>
                 <button type="button" onclick="closeEvaluationModal()" class="text-slate-500 hover:text-slate-300 text-sm font-bold bg-slate-950 px-2 py-1 rounded-lg transition border border-slate-800">ESC</button>
             </div>
             
@@ -40,10 +41,10 @@
 
                 <div class="grid grid-cols-2 gap-4 pt-2">
                     <button type="button" onclick="submitMedicDecision('Approved')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-95 border-none">
-                        Pass Medical
+                        <span id="approveButtonLabel">Pass Medical</span>
                     </button>
-                    <button type="button" onclick="submitMedicDecision('Resubmit for Medic')" class="w-full bg-rose-600/20 hover:bg-rose-600 border border-rose-500/20 hover:border-transparent text-rose-400 hover:text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition active:scale-95">
-                        Order Resubmit
+                    <button type="button" onclick="submitMedicDecision(isHseReviewRole ? 'Resubmit' : 'Resubmit for Medic')" class="w-full bg-rose-600/20 hover:bg-rose-600 border border-rose-500/20 hover:border-transparent text-rose-400 hover:text-white font-black py-3 rounded-xl text-xs uppercase tracking-wider transition active:scale-95">
+                        <span id="resubmitButtonLabel">Order Resubmit</span>
                     </button>
                 </div>
             </form>
@@ -52,7 +53,7 @@
     <!-- Master Application View Stack Header Layout Panel Row -->
     <div class="flex flex-col w-full min-h-screen items-stretch justify-start">
         <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 shadow-lg w-full shrink-0">
-            <div class="max-w-7xl mx-auto flex justify-between items-center w-full">
+            <div class="max-w-7xl mx-auto flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
                         <span>SAS_SUBCON</span>
@@ -60,9 +61,19 @@
                     </h1>
                     <p class="text-xs text-slate-400 font-medium mt-0.5">Medical Officer Verification Command Cockpit & Deployment Desk</p>
                 </div>
-                <button type="button" onclick="handleSystemLogout()" class="bg-slate-800 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700 shadow-md active:scale-[0.98]">
-                    Disconnect Session
-                </button>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <nav class="flex flex-wrap items-center gap-2">
+                        <a href="/user/manage-users" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Users</a>
+                        <a href="/site/manage-sites" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Sites</a>
+                        <a href="/supplier/manage-suppliers" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Suppliers</a>
+                        <a href="/designation/manage-designations" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Designations</a>
+                        <a href="/mobilization/portal" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Portal</a>
+                    </nav>
+                    <button type="button" onclick="handleSystemLogout()" class="bg-slate-800 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700 shadow-md active:scale-[0.98]">
+                        Disconnect Session
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -122,6 +133,8 @@
     </div>
     <script>
         const token = localStorage.getItem('token');
+        const currentUserRole = localStorage.getItem('role') || 'SITE_MEDIC';
+        const isHseReviewRole = currentUserRole === 'SITE_HSE';
         let pendingMobilizationsDataset = [];
         let currentMedicTabFilter = 'Pending';
         let selectedUrgencyFilter = 'ALL';
@@ -132,9 +145,11 @@
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // READ PIPELINES: STREAM ACTIVE MOBILIZATIONS UNRESTRICTED FOR TAB SORTING
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
         async function fetchActiveMedicReviewQueue() {
             try {
-                const res = await fetch('/admin-review/medic/pending', { 
+                const endpoint = isHseReviewRole ? '/admin-review/hse/pending' : '/admin-review/medic/pending';
+                const res = await fetch(endpoint, { 
                     method: 'GET', 
                     headers: { 'Authorization': `Bearer ${token}` } 
                 });
@@ -152,16 +167,15 @@
             const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
             
             const filtered = pendingMobilizationsDataset.filter(req => {
-                // 1. Resolve Multi-Gate Status parameters matching case-insensitively
-                const medStatus = (req.medical_status || "Pending").trim();
+                const reviewStatus = isHseReviewRole ? (req.hse_status || "Pending").trim() : (req.medical_status || "Pending").trim();
                 let tabMatch = false;
 
                 if (currentMedicTabFilter === 'Pending') {
-                    tabMatch = medStatus === 'Pending' || medStatus === null || medStatus === undefined;
+                    tabMatch = reviewStatus === 'Pending' || reviewStatus === null || reviewStatus === undefined;
                 } else if (currentMedicTabFilter === 'Approved') {
-                    tabMatch = medStatus === 'Approved';
+                    tabMatch = reviewStatus === 'Approved';
                 } else if (currentMedicTabFilter === 'Resubmit') {
-                    tabMatch = medStatus === 'Resubmit';
+                    tabMatch = reviewStatus === 'Resubmit';
                 }
 
                 // 2. Resolve Urgency priority level parameters matching bounds
@@ -243,12 +257,14 @@
                     wqtMarkup = `<a href="${req.wqt_file_url}" target="_medic_view" class="bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded font-bold tracking-wide hover:bg-rose-600 hover:text-white transition">WQT Card</a>`;
                 }
 
-                // Conditional decision button locks depending on gate states
+                const currentReviewStatus = isHseReviewRole ? (req.hse_status || "Pending") : (req.medical_status || "Pending");
+                const reviewDocUrl = isHseReviewRole ? (req.hse_file_url || '#') : (req.medical_file_url || '#');
+
                 let actionCellMarkup = `<span class="text-emerald-400 font-extrabold bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 uppercase tracking-wide select-none">Passed</span>`;
                 
-                if (req.medical_status === 'Resubmit') {
-                    actionCellMarkup = `<span class="text-rose-400 font-extrabold bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20 uppercase tracking-wide select-none">Rejected</span>`;
-                } else if (req.medical_status === 'Pending' || !req.medical_status) {
+                if (currentReviewStatus === 'Resubmit') {
+                    actionCellMarkup = `<span class="text-rose-400 font-extrabold bg-rose-500/10 px-2.5 py-1 rounded-xl border border-rose-500/20 uppercase tracking-wide select-none">Correction</span>`;
+                } else if (currentReviewStatus === 'Pending' || !currentReviewStatus) {
                     actionCellMarkup = `
                         <button onclick="openEvaluationModal('${req._id}', '${req.employee_name.replace(/'/g, "\\'")}', '${req.civil_id}')" class="bg-blue-600 hover:bg-blue-500 text-white font-black px-4 py-2 rounded-xl uppercase tracking-wider text-[10px] transition border-none shadow-md shadow-blue-600/10 active:scale-95">
                             Evaluate
@@ -278,7 +294,7 @@
                     </td>
                     <td class="px-6 py-4 text-center vertical-align-middle" style="text-align: center !important;">
                         <div class="flex gap-1.5 justify-center items-center flex-wrap w-full">
-                            <a href="${req.medical_file_url}" target="_medic_view" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded-xl font-black tracking-wide hover:bg-blue-600 hover:text-white transition text-[10px] border-none">Medical PDF</a>
+                            <a href="${reviewDocUrl}" target="_medic_view" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-1 rounded-xl font-black tracking-wide hover:bg-blue-600 hover:text-white transition text-[10px] border-none">${isHseReviewRole ? 'HSE PDF' : 'Medical PDF'}</a>
                             ${wqtMarkup}
                         </div>
                     </td>
@@ -299,6 +315,23 @@
             document.getElementById('modalWorkerName').innerText = name;
             document.getElementById('modalCivilId').innerText = `CIVIL ID PARAMETER REFERENCE: ${civilId}`;
             document.getElementById('medic_notes').value = '';
+
+            const titleText = document.getElementById('evaluationTitleText');
+            const titleIcon = document.getElementById('evaluationTitleIcon');
+            const approveLabel = document.getElementById('approveButtonLabel');
+            const resubmitLabel = document.getElementById('resubmitButtonLabel');
+
+            if (isHseReviewRole) {
+                if (titleText) titleText.textContent = 'Process HSE Clearance';
+                if (titleIcon) titleIcon.textContent = '🛡️';
+                if (approveLabel) approveLabel.textContent = 'Approve HSE';
+                if (resubmitLabel) resubmitLabel.textContent = 'Request HSE Correction';
+            } else {
+                if (titleText) titleText.textContent = 'Process Health Clearance';
+                if (titleIcon) titleIcon.textContent = '🩺';
+                if (approveLabel) approveLabel.textContent = 'Pass Medical';
+                if (resubmitLabel) resubmitLabel.textContent = 'Order Resubmit';
+            }
             
             const modal = document.getElementById('evaluationModal');
             if (modal) modal.classList.remove('hidden');
@@ -314,11 +347,26 @@
             const comments = document.getElementById('medic_notes').value.trim();
 
             if (!comments) {
-                showAlert("Clinical evaluation notes are mandatory fields.", "error");
+                showAlert(isHseReviewRole ? "HSE review notes are mandatory fields." : "Clinical evaluation notes are mandatory fields.", "error");
                 return;
             }
 
             try {
+                if (isHseReviewRole) {
+                    const res = await fetch('/admin-review/hse/evaluate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ requestId, department: 'HSE', action: decisionValue === 'Approved' ? 'Approved' : 'Resubmit', comment: comments })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message);
+
+                    showAlert(`HSE verdict logged successfully! Status marked as: ${decisionValue}`, "success");
+                    closeEvaluationModal();
+                    await fetchActiveMedicReviewQueue();
+                    return;
+                }
+
                 const res = await fetch('/admin-review/medic/evaluate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },

@@ -6,6 +6,7 @@
     <title>SAS_SUBCON - Site Management</title>
     <!-- 1. Local Fallback Static Stylesheet Link -->
     <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/auth_guard.js"></script>
     <!-- 2. CORRECTED Tailwind CSS Runtime Engine Script CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -30,17 +31,24 @@
     <div class="flex flex-col w-full min-h-screen items-stretch justify-start">
 
         <!-- Top Navigation Header: Spans 100% of top screen width -->
-        <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-lg w-full shrink-0">
-            <div>
-                <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                    <span>SAS_SUBCON</span>
-                    <span class="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/30">Hub Portal</span>
-                </h1>
-                <p class="text-xs text-slate-400 font-medium mt-0.5">Physical Infrastructure & Project Locations</p>
+        <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 shadow-lg w-full shrink-0">
+            <div class="max-w-7xl mx-auto flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                        <span>SAS_SUBCON</span>
+                        <span class="text-xs bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/30">Hub Portal</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">Physical Infrastructure & Project Locations</p>
+                </div>
+
+                <nav class="flex flex-wrap items-center gap-2">
+                    <a href="/user/manage-users" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Users</a>
+                    <a href="/site/manage-sites" class="bg-emerald-600/20 text-emerald-300 text-xs font-bold px-3 py-2 rounded-xl border border-emerald-500/30 transition">Sites</a>
+                    <a href="/supplier/manage-suppliers" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Suppliers</a>
+                    <a href="/designation/manage-designations" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Designations</a>
+                    <a href="/mobilization/portal" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Portal</a>
+                </nav>
             </div>
-            <a href="/user/dashboard-view" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700">
-                Back to Dashboard
-            </a>
         </header>
         <!-- Main Content Area: Aligns Form and Table Side-by-Side underneath header -->
         <main class="max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">

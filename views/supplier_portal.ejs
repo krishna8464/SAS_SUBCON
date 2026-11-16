@@ -6,6 +6,7 @@
     <title>SAS_SUBCON - Subcontractor Mobilization Hub</title>
     <!-- 1. Local Fallback Static Stylesheet Link -->
     <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/auth_guard.js"></script>
     <!-- 2. Tailwind CSS Runtime Engine Script CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -42,7 +43,7 @@
 
         <!-- Top Navigation Header: Pinned horizontal channel -->
         <header class="bg-slate-950 border-b border-slate-800 px-6 py-4 shadow-lg w-full shrink-0">
-            <div class="max-w-7xl mx-auto flex justify-between items-center w-full">
+            <div class="max-w-7xl mx-auto flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
                         <span>SAS_SUBCON</span>
@@ -50,12 +51,20 @@
                     </h1>
                     <p class="text-xs text-slate-400 font-medium mt-0.5">Subcontractor Workforce Mobilization & Deployment Workbench</p>
                 </div>
-                
-                <!-- Disconnect Session Trigger Button -->
-                <button onclick="handleLogout()" 
-                    class="bg-slate-800 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700 shadow-md active:scale-[0.98]">
-                    Disconnect Session
-                </button>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <nav class="flex flex-wrap items-center gap-2">
+                        <a href="/user/manage-users" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Users</a>
+                        <a href="/site/manage-sites" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Sites</a>
+                        <a href="/supplier/manage-suppliers" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Suppliers</a>
+                        <a href="/designation/manage-designations" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Designations</a>
+                        <a href="/mobilization/portal" class="bg-emerald-600/20 text-emerald-300 text-xs font-bold px-3 py-2 rounded-xl border border-emerald-500/30 transition">Portal</a>
+                    </nav>
+                    <button onclick="handleLogout()" 
+                        class="bg-slate-800 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700 shadow-md active:scale-[0.98]">
+                        Disconnect Session
+                    </button>
+                </div>
             </div>
         </header>
 

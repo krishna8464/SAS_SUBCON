@@ -137,6 +137,19 @@ const loginUser = async (req, res) => {
 
         await Token.create({ token, is_active: true, user_id: user._id });
 
+        res.cookie("token", token, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false,
+            maxAge: 24 * 60 * 60 * 1000
+        });
+        res.cookie("role", user.role, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: false,
+            maxAge: 24 * 60 * 60 * 1000
+        });
+
         res.status(200).json({ 
             message: "Login successful", 
             token,
@@ -165,6 +178,8 @@ const logoutUser = async (req, res) => {
 
         tokenDoc.is_active = false;
         await tokenDoc.save();
+        res.clearCookie("token");
+        res.clearCookie("role");
         res.status(200).json({ message: "Logged out successfully" });
     } catch (err) {
         res.status(500).json({ message: "Logout failed", error: err.message });

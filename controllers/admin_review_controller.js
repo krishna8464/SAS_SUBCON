@@ -20,19 +20,20 @@ const evaluateSiteComplianceDocs = async (req, res) => {
 
         let logNotes = `${department} Evaluation logged: [${action}]. Comments: ${comment || 'None'}`;
 
-        // 1. Process evaluation remarks based on the reviewing department channels
         if (department === "Medic") {
-            request.medical_comment = comment || "Approved by Site Medic";
-            if (action === "Resubmit") request.status = "Resubmit for Medic";
+            request.medical_status = action === "Approved" ? "Approved" : action === "Resubmit" ? "Resubmit" : "Pending";
+            request.medical_comment = comment || (action === "Approved" ? "Approved by Site Medic" : "Correction required by Site Medic");
+            request.status = "Under Review";
         } else if (department === "HSE") {
-            request.hse_comment = comment || "Approved by Site HSE Unit";
-            if (action === "Resubmit") request.status = "Resubmit for HSE";
+            request.hse_status = action === "Approved" ? "Approved" : action === "Resubmit" ? "Resubmit" : "Pending";
+            request.hse_comment = comment || (action === "Approved" ? "Approved by Site HSE Unit" : "Correction required by Site HSE Unit");
+            request.status = "Under Review";
         } else if (department === "WQT_Team") {
-            request.wqt_comment = comment || "Approved by Welder Review Team";
-            if (action === "Resubmit") request.status = "Resubmit for WQT";
+            request.wqt_status = action === "Approved" ? "Approved" : action === "Resubmit" ? "Resubmit" : "Pending";
+            request.wqt_comment = comment || (action === "Approved" ? "Approved by Welder Review Team" : "Correction required by Welder Review Team");
+            request.status = "Under Review";
         }
 
-        // 2. Direct Rejection drops application completely across the system immediately
         if (action === "Rejected") {
             request.status = "Rejected";
             request.rejection_remarks = comment || `Application rejected during ${department} verification stage evaluation.`;
@@ -41,22 +42,23 @@ const evaluateSiteComplianceDocs = async (req, res) => {
             return res.status(200).json({ message: "Application marked as Rejected successfully.", request });
         }
 
-        // 3. Process Approvals and verify gate milestones
         if (action === "Approved") {
-            const isMedicReady = request.medical_comment.toLowerCase().includes("approved");
-            const isHseReady = request.hse_comment.toLowerCase().includes("approved");
-            
-            // Specialized compliance check rule for structural Welder classifications
-            const isWelderTrade = request.designation_id && request.designation_id.title.toLowerCase().includes("welder");
-            const isWqtReady = !isWelderTrade || request.wqt_comment.toLowerCase().includes("approved");
+            const isMedicReady = request.medical_status === "Approved";
+            const isHseReady = request.hse_status === "Approved";
+            const isWelderTrade = request.designation_id && request.designation_id.title && request.designation_id.title.toLowerCase().includes("welder");
+            const isWqtReady = !isWelderTrade || request.wqt_status === "Approved" || request.wqt_status === "Not Required";
 
-            // 3-WAY GATE CHECK CONDITION FOR MOVEMENT TO TIER 3
             if (isMedicReady && isHseReady && isWqtReady) {
-                request.status = "Pending HO Approval"; // Pushes clean up to Tier 3 Head Office!
+                request.status = "Pending HO Approval";
                 logNotes += " -> 3-Way Site Review Sequence Cleared: Advanced to Head Office Dashboard.";
             } else {
                 logNotes += ` -> Review captured. Clearance matrix state: [Medic: ${isMedicReady}] [HSE: ${isHseReady}] [WQT (Welder Only): ${isWqtReady}]`;
             }
+        }
+
+        if (action === "Resubmit") {
+            request.status = "Under Review";
+            logNotes += " -> Correction requested. Request remains in active review queue for the next review pass.";
         }
 
         request.submission_history.push({ action, by_user: req.user.id, timestamp: new Date().toISOString(), notes: logNotes });
@@ -98,7 +100,9 @@ const processHeadOfficeApproval = async (req, res) => {
 
         // Check for unique index collisions on the Subcon ID tracking field before creating documents
         const subconIdCollision = await SubcontractorEmployee.findOne({ subcon_id: cleanSubconId });
-        if (subconIdCollision) return res.status(400).json({ message: `Authorization Blocked! Subcon ID '${cleanSubconId}' is already active on another worker record.` });
+        if (subconIdCollision) {
+            return res.status(400).json({ message: `Authorization Blocked! Subcon ID '${cleanSubconId}' is already active on another worker record.` });
+        }
 
         // Advance mobilization file to Tier 4 Site Admin
         request.status = "Pending Site Admin";
@@ -109,6 +113,13 @@ const processHeadOfficeApproval = async (req, res) => {
             { $set: { employment_status: "Inactive" } }
         );
 
+        const toDateString = (value) => {
+            if (!value) return '';
+            const date = value instanceof Date ? value : new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return date.toISOString().split('T')[0];
+        };
+
         // AUTOMATION PIPELINE TRIGGER: Compile and create the live active profile document in subcontractor_employees
         const activeEmployeeProfile = new SubcontractorEmployee({
             subcon_id: cleanSubconId,
@@ -116,10 +127,10 @@ const processHeadOfficeApproval = async (req, res) => {
             civil_id: request.civil_id,
             employee_name: request.employee_name,
             nationality: request.nationality,
-            dob: request.dob.toISOString().split('T')[0],
+            dob: toDateString(request.dob),
             mobile_number: request.mobile_number,
             designation_id: request.designation_id,
-            civil_expire: request.civil_expire.toISOString().split('T')[0],
+            civil_expire: toDateString(request.civil_expire),
             accommodation_type: request.accommodation_type,
             current_site_id: request.target_site_id,
             supplier_id: request.sub_company_id, // Links subcon ID straight to the supplier
@@ -182,11 +193,11 @@ const getPendingMedicRequests = async (req, res) => {
         const siteContextId = req.user.site_id || req.user.siteId;
 
         const queryFilter = {
-            // 🌟 RE-ENGINEERED: Pulls every request active under review so the frontend tabs can sort history instantly!
-            status: { $in: ["Under Review", "Resubmit Required", "Pending HO Approval", "Pending Site Admin", "Approved"] }
+            status: { $in: ["Under Review", "Pending HO Approval", "Pending Site Admin", "Approved"] },
+            medical_status: { $in: ["Pending", "Approved", "Resubmit"] }
         };
 
-        if (reviewerRole !== "HO" && reviewerRole !== "DEVELOPER" && reviewerRole !== "ERP_TEAM", reviewerRole !== "SUPPLIER") {
+        if (reviewerRole !== "HO" && reviewerRole !== "DEVELOPER" && reviewerRole !== "ERP_TEAM" && reviewerRole !== "SUPPLIER") {
             if (!siteContextId) return res.status(400).json({ message: "Access Denied! Missing Site ID allocation link." });
             queryFilter.target_site_id = new mongoose.Types.ObjectId(siteContextId);
         }
@@ -200,6 +211,57 @@ const getPendingMedicRequests = async (req, res) => {
         res.status(200).json({ count: pendingQueue.length, requests: pendingQueue });
     } catch (error) {
         res.status(500).json({ message: "Error reading clinical queue", error: error.message });
+    }
+};
+
+const getPendingHseRequests = async (req, res) => {
+    try {
+        const reviewerRole = req.user.role;
+        const siteContextId = req.user.site_id || req.user.siteId;
+
+        const queryFilter = {
+            status: { $in: ["Under Review", "Pending HO Approval", "Pending Site Admin", "Approved"] },
+            hse_status: { $in: ["Pending", "Approved", "Resubmit"] }
+        };
+
+        if (reviewerRole !== "HO" && reviewerRole !== "DEVELOPER" && reviewerRole !== "ERP_TEAM" && reviewerRole !== "SUPPLIER") {
+            if (!siteContextId) return res.status(400).json({ message: "Access Denied! Missing Site ID allocation link." });
+            queryFilter.target_site_id = new mongoose.Types.ObjectId(siteContextId);
+        }
+
+        const pendingQueue = await MobilizationRequest.find(queryFilter)
+            .populate("designation_id", "title risk_level")
+            .populate("target_site_id", "site_name location site_code")
+            .populate("sub_company_id", "supplier_name registration_number")
+            .sort({ urgency: -1, createdAt: -1 });
+
+        res.status(200).json({ count: pendingQueue.length, requests: pendingQueue });
+    } catch (error) {
+        res.status(500).json({ message: "Error reading HSE queue", error: error.message });
+    }
+};
+
+const getHeadOfficeQueue = async (req, res) => {
+    try {
+        const queue = await MobilizationRequest.find({
+            status: { $in: ["Pending HO Approval", "Pending Site Admin", "Approved", "Rejected", "Cancelled"] }
+        })
+            .populate("designation_id", "title risk_level")
+            .populate("target_site_id", "site_name location site_code")
+            .populate("sub_company_id", "supplier_name registration_number")
+            .sort({ updatedAt: -1 });
+
+        const pending = queue.filter(item => item.status === "Pending HO Approval");
+        const completed = queue.filter(item => ["Pending Site Admin", "Approved", "Rejected", "Cancelled"].includes(item.status));
+
+        res.status(200).json({
+            count: queue.length,
+            pendingCount: pending.length,
+            completedCount: completed.length,
+            requests: queue
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error reading Head Office approval queue", error: error.message });
     }
 };
 
@@ -263,4 +325,4 @@ const evaluateMedicRequest = async (req, res) => {
 };
 
 
-module.exports = { evaluateSiteComplianceDocs, processHeadOfficeApproval, allocateSiteAccommodation, getPendingMedicRequests, evaluateMedicRequest };
+module.exports = { evaluateSiteComplianceDocs, processHeadOfficeApproval, allocateSiteAccommodation, getPendingMedicRequests, getPendingHseRequests, getHeadOfficeQueue, evaluateMedicRequest };

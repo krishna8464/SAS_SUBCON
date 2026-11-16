@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAS_SUBCON - Role Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <header class="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl mb-6">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div>
+          <p class="text-xs uppercase tracking-[0.25em] text-emerald-400 font-bold">SAS_SUBCON</p>
+          <h1 class="text-3xl font-black mt-2">Operations Dashboard</h1>
+          <p class="text-slate-400 text-sm mt-1">Role-based workspace launcher for your team.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+            <%= role %>
+          </span>
+          <button onclick="handleLogout()" class="bg-slate-800 text-slate-200 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 border border-slate-700 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition">
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-0 py-6 space-y-6">
+      <% if (['HO','ERP_TEAM','DEVELOPER'].includes(role)) { %>
+        <section class="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-5">
+            <div>
+              <p class="text-[10px] uppercase tracking-[0.25em] text-violet-400 font-bold">Head Office</p>
+              <h1 class="text-3xl font-black mt-2">Final Approval Queue</h1>
+            </div>
+            <div class="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wider">
+              <span id="hoPendingBadge" class="bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-full px-3 py-1.5">Pending: 0</span>
+              <span id="hoCompletedBadge" class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-full px-3 py-1.5">Completed: 0</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <button type="button" data-view="pending" class="hoTabBtn bg-violet-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-violet-500/30">Pending</button>
+            <button type="button" data-view="completed" class="hoTabBtn bg-slate-900 text-slate-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-slate-700">Completed</button>
+          </div>
+
+          <div id="hoPendingView" class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[1100px]">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 text-[10px] uppercase tracking-wider font-bold">
+                  <th class="px-3 py-3">Worker</th>
+                  <th class="px-3 py-3">Site / Supplier</th>
+                  <th class="px-3 py-3">Gate Status</th>
+                  <th class="px-3 py-3">Document Review</th>
+                  <th class="px-3 py-3">Approval</th>
+                </tr>
+              </thead>
+              <tbody id="hoPendingTableBody" class="text-sm text-slate-200"></tbody>
+            </table>
+          </div>
+
+          <div id="hoCompletedView" class="hidden overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[1100px]">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 text-[10px] uppercase tracking-wider font-bold">
+                  <th class="px-3 py-3">Worker</th>
+                  <th class="px-3 py-3">Site / Supplier</th>
+                  <th class="px-3 py-3">Final Status</th>
+                  <th class="px-3 py-3">Document Review</th>
+                  <th class="px-3 py-3">Details</th>
+                </tr>
+              </thead>
+              <tbody id="hoCompletedTableBody" class="text-sm text-slate-200"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <a href="/user/manage-users" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/40 hover:bg-slate-900 transition">
+            <p class="text-xs uppercase tracking-wider text-emerald-400 font-bold mb-3">Administration</p>
+            <h2 class="text-2xl font-black mb-2">User Directory</h2>
+            <p class="text-slate-400 text-sm">Manage access, roles, and account status.</p>
+          </a>
+
+          <a href="/site/manage-sites" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-cyan-500/40 hover:bg-slate-900 transition">
+            <p class="text-xs uppercase tracking-wider text-cyan-400 font-bold mb-3">Operations</p>
+            <h2 class="text-2xl font-black mb-2">Site Management</h2>
+            <p class="text-slate-400 text-sm">Monitor and maintain active deployment sites.</p>
+          </a>
+
+          <a href="/supplier/manage-suppliers" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-amber-500/40 hover:bg-slate-900 transition">
+            <p class="text-xs uppercase tracking-wider text-amber-400 font-bold mb-3">Suppliers</p>
+            <h2 class="text-2xl font-black mb-2">Supplier Registry</h2>
+            <p class="text-slate-400 text-sm">Track registered subcontractor companies.</p>
+          </a>
+
+          <a href="/designation/manage-designations" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-violet-500/40 hover:bg-slate-900 transition md:col-span-2 xl:col-span-3">
+            <p class="text-xs uppercase tracking-wider text-violet-400 font-bold mb-3">Standards</p>
+            <h2 class="text-2xl font-black mb-2">Designations</h2>
+            <p class="text-slate-400 text-sm">Control classifications and trade risk levels.</p>
+          </a>
+        </section>
+      <% } %>
+
+      <% if (role === 'SUPPLIER') { %>
+        <a href="/mobilization/portal" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/40 hover:bg-slate-900 transition md:col-span-2 xl:col-span-3">
+          <p class="text-xs uppercase tracking-wider text-emerald-400 font-bold mb-3">Supplier Portal</p>
+          <h2 class="text-2xl font-black mb-2">Mobilization Hub</h2>
+          <p class="text-slate-400 text-sm">Submit worker packets, upload compliance documents, and track review status.</p>
+        </a>
+      <% } %>
+
+      <% if (['SITE_MEDIC','SITE_HSE'].includes(role)) { %>
+        <a href="/user/medic-dashboard" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-blue-500/40 hover:bg-slate-900 transition md:col-span-2 xl:col-span-3">
+          <p class="text-xs uppercase tracking-wider text-blue-400 font-bold mb-3">Clinical Review</p>
+          <h2 class="text-2xl font-black mb-2">Medical & Compliance Desk</h2>
+          <p class="text-slate-400 text-sm">Review worker submissions, approve fit-for-duty certifications, and manage follow-up actions.</p>
+        </a>
+      <% } %>
+
+      <% if (role === 'SITE_MANAGER') { %>
+        <a href="/site/manage-sites" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-cyan-500/40 hover:bg-slate-900 transition md:col-span-2 xl:col-span-3">
+          <p class="text-xs uppercase tracking-wider text-cyan-400 font-bold mb-3">Site Control</p>
+          <h2 class="text-2xl font-black mb-2">Site Registry</h2>
+          <p class="text-slate-400 text-sm">Track deployment locations and manage site-level operational records.</p>
+        </a>
+      <% } %>
+    </main>
+  </div>
+
+  <div id="hoApprovalModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 p-4 overflow-y-auto">
+    <div class="max-w-5xl mx-auto mt-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] uppercase tracking-[0.25em] text-violet-400 font-bold">Head Office Review</p>
+          <h3 id="hoModalTitle" class="text-2xl font-black text-white mt-1">Worker Mobilization Record</h3>
+        </div>
+        <button onclick="closeHoModal()" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-wider">Close</button>
+      </div>
+
+      <div class="p-6 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Worker</p>
+            <div id="modalWorkerName" class="text-lg font-black text-white">--</div>
+            <div id="modalCivilId" class="text-[11px] text-slate-500 font-mono mt-1">--</div>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Nationality / DOB</p>
+            <div id="modalNationality" class="text-base font-bold text-slate-200">--</div>
+            <div id="modalDob" class="text-[11px] text-slate-500 mt-1">--</div>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Site / Supplier</p>
+            <div id="modalSite" class="text-base font-bold text-slate-200">--</div>
+            <div id="modalSupplier" class="text-[11px] text-slate-500 mt-1">--</div>
+          </div>
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+            <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Current Status</p>
+            <div id="modalStatus" class="inline-flex px-2 py-1 rounded-full text-[10px] uppercase font-black tracking-wider bg-amber-500/10 text-amber-300 border border-amber-500/20">--</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5">
+            <h4 class="text-xs uppercase tracking-[0.25em] text-emerald-400 font-bold mb-4">Employee Summary</h4>
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">Designation</span><span id="modalDesignation" class="font-bold text-slate-200">--</span></div>
+              <div class="flex justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">Sponsor</span><span id="modalSponsor" class="font-bold text-slate-200">--</span></div>
+              <div class="flex justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">Mobile</span><span id="modalMobile" class="font-bold text-slate-200">--</span></div>
+              <div class="flex justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">Accommodation</span><span id="modalAccommodation" class="font-bold text-slate-200">--</span></div>
+              <div class="flex justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">Urgency</span><span id="modalUrgency" class="font-bold text-slate-200">--</span></div>
+              <div class="flex justify-between gap-3"><span class="text-slate-500">Submission Date</span><span id="modalCreatedAt" class="font-bold text-slate-200">--</span></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5">
+            <h4 class="text-xs uppercase tracking-[0.25em] text-blue-400 font-bold mb-4">Gate Progress</h4>
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">Medical</span><span id="modalMedicalStatus" class="font-bold text-slate-200">--</span></div>
+              <div class="flex justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">HSE</span><span id="modalHseStatus" class="font-bold text-slate-200">--</span></div>
+              <div class="flex justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">WQT</span><span id="modalWqtStatus" class="font-bold text-slate-200">--</span></div>
+              <div class="flex justify-between gap-3"><span class="text-slate-500">HO Decision</span><span id="modalHoStatus" class="font-bold text-slate-200">--</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5">
+            <h4 class="text-xs uppercase tracking-[0.25em] text-amber-400 font-bold mb-4">Document Access</h4>
+            <div class="space-y-3 text-sm">
+              <div class="flex items-center justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">Medical File</span><a id="modalMedicalFile" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold underline">Open</a></div>
+              <div class="flex items-center justify-between gap-3 border-b border-slate-800 pb-2"><span class="text-slate-500">HSE File</span><a id="modalHseFile" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold underline">Open</a></div>
+              <div class="flex items-center justify-between gap-3"><span class="text-slate-500">WQT File</span><a id="modalWqtFile" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold underline">Open</a></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5">
+            <h4 class="text-xs uppercase tracking-[0.25em] text-rose-400 font-bold mb-4">Approval Notes</h4>
+            <div class="space-y-3 text-sm">
+              <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Medical Comment</p>
+                <p id="modalMedicalComment" class="text-slate-200">--</p>
+              </div>
+              <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">HSE Comment</p>
+                <p id="modalHseComment" class="text-slate-200">--</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5">
+          <h4 class="text-xs uppercase tracking-[0.25em] text-cyan-400 font-bold mb-4">Transaction Ledger</h4>
+          <div id="modalHistory" class="space-y-3 max-h-64 overflow-y-auto pr-2"></div>
+        </div>
+
+        <div id="hoApprovalFormWrap" class="bg-slate-950 border border-slate-800 rounded-2xl p-5 hidden">
+          <h4 class="text-xs uppercase tracking-[0.25em] text-emerald-400 font-bold mb-4">Final HO Approval</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Subcon ID</label>
+              <input id="hoSubconIdInput" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Enter assigned Subcon ID" />
+            </div>
+            <div>
+              <label class="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Approval Note</label>
+              <input id="hoApprovalCommentInput" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Head office approval note" value="Approved by Head Office Operations" />
+            </div>
+          </div>
+          <div class="mt-4 flex justify-end">
+            <button onclick="submitHoApproval()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider px-5 py-3 rounded-xl transition">Approve at Head Office</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const currentRole = '<%= role %>';
+    const token = localStorage.getItem('token');
+    let hoQueueData = [];
+    let activeHoRequest = null;
+    let currentHoView = 'pending';
+
+    function statusBadgeClass(status) {
+      if (status === 'Pending HO Approval') return 'bg-amber-500/10 text-amber-300 border border-amber-500/20';
+      if (status === 'Approved') return 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20';
+      if (status === 'Rejected') return 'bg-rose-500/10 text-rose-300 border border-rose-500/20';
+      if (status === 'Pending Site Admin') return 'bg-blue-500/10 text-blue-300 border border-blue-500/20';
+      if (status === 'Cancelled') return 'bg-slate-700 text-slate-300 border border-slate-600';
+      return 'bg-slate-800 text-slate-300 border border-slate-700';
+    }
+
+    function formatDate(value) {
+      if (!value) return '--';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function setHoTab(view) {
+      currentHoView = view;
+      const pendingView = document.getElementById('hoPendingView');
+      const completedView = document.getElementById('hoCompletedView');
+      const buttons = document.querySelectorAll('.hoTabBtn');
+
+      pendingView.classList.toggle('hidden', view !== 'pending');
+      completedView.classList.toggle('hidden', view !== 'completed');
+
+      buttons.forEach(button => {
+        const active = button.dataset.view === view;
+        button.className = `hoTabBtn ${active ? 'bg-violet-600 text-white border border-violet-500/30' : 'bg-slate-900 text-slate-300 border border-slate-700'} px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em]`;
+      });
+    }
+
+    function renderHoQueue() {
+      const pendingTable = document.getElementById('hoPendingTableBody');
+      const completedTable = document.getElementById('hoCompletedTableBody');
+      const pendingBadge = document.getElementById('hoPendingBadge');
+      const completedBadge = document.getElementById('hoCompletedBadge');
+      if (!pendingTable || !completedTable) return;
+
+      const pending = hoQueueData.filter(item => item.status === 'Pending HO Approval');
+      const completed = hoQueueData.filter(item => ['Pending Site Admin', 'Approved', 'Rejected', 'Cancelled'].includes(item.status));
+
+      pendingBadge.textContent = `Pending: ${pending.length}`;
+      completedBadge.textContent = `Completed: ${completed.length}`;
+
+      if (!pending.length) {
+        pendingTable.innerHTML = '<tr><td colspan="5" class="px-3 py-8 text-center text-slate-500 text-xs uppercase tracking-wider">No pending applications are waiting for Head Office approval.</td></tr>';
+      } else {
+        pendingTable.innerHTML = pending.map(request => {
+          const workerName = request.employee_name || 'Unknown worker';
+          const civilId = request.civil_id || 'N/A';
+          const siteName = request.target_site_id && request.target_site_id.site_name ? request.target_site_id.site_name : 'N/A';
+          const supplierName = request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : 'N/A';
+          const reviewSummary = `${request.medical_status || 'Pending'} / ${request.hse_status || 'Pending'} / ${request.wqt_status || 'Not Required'}`;
+          return `
+            <tr class="border-b border-slate-800/60 align-top">
+              <td class="px-3 py-4">
+                <div class="font-bold text-white">${workerName}</div>
+                <div class="text-[10px] text-slate-500 font-mono">${civilId}</div>
+              </td>
+              <td class="px-3 py-4">
+                <div class="text-xs text-slate-300">${siteName}</div>
+                <div class="text-[10px] text-slate-500">${supplierName}</div>
+              </td>
+              <td class="px-3 py-4"><span class="inline-flex px-2 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold ${statusBadgeClass(request.status)}">${request.status}</span></td>
+              <td class="px-3 py-4">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider">Medical / HSE / WQT</div>
+                <div class="text-xs text-slate-200 mt-1">${reviewSummary}</div>
+              </td>
+              <td class="px-3 py-4">
+                <div class="flex gap-2">
+                  <button onclick="openHoModal('${request._id}')" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg transition">View</button>
+                  <button onclick="approveHoRequest('${request._id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg transition">Approve</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (!completed.length) {
+        completedTable.innerHTML = '<tr><td colspan="5" class="px-3 py-8 text-center text-slate-500 text-xs uppercase tracking-wider">No completed Head Office records yet.</td></tr>';
+      } else {
+        completedTable.innerHTML = completed.map(request => {
+          const workerName = request.employee_name || 'Unknown worker';
+          const civilId = request.civil_id || 'N/A';
+          const siteName = request.target_site_id && request.target_site_id.site_name ? request.target_site_id.site_name : 'N/A';
+          const supplierName = request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : 'N/A';
+          const reviewSummary = `${request.medical_status || 'Pending'} / ${request.hse_status || 'Pending'} / ${request.wqt_status || 'Not Required'}`;
+          return `
+            <tr class="border-b border-slate-800/60 align-top">
+              <td class="px-3 py-4">
+                <div class="font-bold text-white">${workerName}</div>
+                <div class="text-[10px] text-slate-500 font-mono">${civilId}</div>
+              </td>
+              <td class="px-3 py-4">
+                <div class="text-xs text-slate-300">${siteName}</div>
+                <div class="text-[10px] text-slate-500">${supplierName}</div>
+              </td>
+              <td class="px-3 py-4"><span class="inline-flex px-2 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold ${statusBadgeClass(request.status)}">${request.status}</span></td>
+              <td class="px-3 py-4">
+                <div class="text-[10px] text-slate-400 uppercase tracking-wider">Medical / HSE / WQT</div>
+                <div class="text-xs text-slate-200 mt-1">${reviewSummary}</div>
+              </td>
+              <td class="px-3 py-4"><button onclick="openHoModal('${request._id}')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border border-slate-700 transition">View</button></td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    async function loadHoQueue() {
+      if (!['HO', 'ERP_TEAM', 'DEVELOPER'].includes(currentRole)) return;
+
+      try {
+        const res = await fetch('/admin-review/ho/queue', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || 'Unable to load HO queue');
+        hoQueueData = data.requests || [];
+        renderHoQueue();
+      } catch (error) {
+        const pendingTable = document.getElementById('hoPendingTableBody');
+        const completedTable = document.getElementById('hoCompletedTableBody');
+        if (pendingTable) pendingTable.innerHTML = '<tr><td colspan="5" class="px-3 py-8 text-center text-rose-300 text-xs uppercase tracking-wider">Failed to load head office queue.</td></tr>';
+        if (completedTable) completedTable.innerHTML = '<tr><td colspan="5" class="px-3 py-8 text-center text-rose-300 text-xs uppercase tracking-wider">Failed to load head office queue.</td></tr>';
+      }
+    }
+
+    function openHoModal(requestId) {
+      const request = hoQueueData.find(item => item._id === requestId);
+      if (!request) return;
+
+      activeHoRequest = request;
+      document.getElementById('hoModalTitle').textContent = `${request.employee_name || 'Worker'} Approval Ledger`;
+      document.getElementById('modalWorkerName').textContent = request.employee_name || 'Unknown';
+      document.getElementById('modalCivilId').textContent = `CIVIL ID: ${request.civil_id || 'N/A'}`;
+      document.getElementById('modalNationality').textContent = `${request.nationality || '--'} / ${request.dob ? new Date(request.dob).toLocaleDateString('en-GB') : '--'}`;
+      document.getElementById('modalDob').textContent = request.dob ? `DOB: ${new Date(request.dob).toLocaleDateString('en-GB')}` : 'DOB: --';
+      document.getElementById('modalSite').textContent = request.target_site_id && request.target_site_id.site_name ? request.target_site_id.site_name : 'N/A';
+      document.getElementById('modalSupplier').textContent = request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : 'N/A';
+      document.getElementById('modalStatus').textContent = request.status || 'Unknown';
+      document.getElementById('modalStatus').className = `inline-flex px-2 py-1 rounded-full text-[10px] uppercase tracking-wider font-black ${statusBadgeClass(request.status)}`;
+      document.getElementById('modalDesignation').textContent = request.designation_id && request.designation_id.title ? request.designation_id.title : 'N/A';
+      document.getElementById('modalSponsor').textContent = request.sponsor_company || 'N/A';
+      document.getElementById('modalMobile').textContent = request.mobile_number || 'N/A';
+      document.getElementById('modalAccommodation').textContent = request.accommodation_type || 'N/A';
+      document.getElementById('modalUrgency').textContent = request.urgency || 'Normal';
+      document.getElementById('modalCreatedAt').textContent = formatDate(request.createdAt);
+      document.getElementById('modalMedicalStatus').textContent = request.medical_status || 'Pending';
+      document.getElementById('modalHseStatus').textContent = request.hse_status || 'Pending';
+      document.getElementById('modalWqtStatus').textContent = request.wqt_status || 'Not Required';
+      document.getElementById('modalHoStatus').textContent = request.status || 'Pending';
+      document.getElementById('modalMedicalComment').textContent = request.medical_comment || 'No medical note recorded';
+      document.getElementById('modalHseComment').textContent = request.hse_comment || 'No HSE note recorded';
+
+      const medicalFileLink = document.getElementById('modalMedicalFile');
+      const hseFileLink = document.getElementById('modalHseFile');
+      const wqtFileLink = document.getElementById('modalWqtFile');
+      medicalFileLink.href = request.medical_file_url || '#';
+      hseFileLink.href = request.hse_file_url || '#';
+      wqtFileLink.href = request.wqt_file_url || '#';
+      wqtFileLink.style.opacity = request.wqt_file_url ? '1' : '0.4';
+      wqtFileLink.textContent = request.wqt_file_url ? 'Open' : 'Not Provided';
+
+      const historyWrap = document.getElementById('modalHistory');
+      historyWrap.innerHTML = (request.submission_history || []).length
+        ? (request.submission_history || []).slice().reverse().map(entry => `
+            <div class="border border-slate-800 rounded-xl p-3 bg-slate-900">
+              <div class="flex items-center justify-between gap-3 mb-2">
+                <span class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">${entry.action || 'Update'}</span>
+                <span class="text-[10px] text-slate-500">${formatDate(entry.timestamp)}</span>
+              </div>
+              <p class="text-xs text-slate-300">${entry.notes || 'No notes recorded.'}</p>
+            </div>
+          `).join('')
+        : '<div class="text-xs text-slate-500">No transaction history recorded yet.</div>';
+
+      const formWrap = document.getElementById('hoApprovalFormWrap');
+      formWrap.classList.toggle('hidden', request.status !== 'Pending HO Approval');
+      document.getElementById('hoApprovalModal').classList.remove('hidden');
+    }
+
+    function closeHoModal() {
+      document.getElementById('hoApprovalModal').classList.add('hidden');
+      activeHoRequest = null;
+    }
+
+    async function approveHoRequest(requestId) {
+      const request = hoQueueData.find(item => item._id === requestId);
+      if (!request) return;
+      openHoModal(requestId);
+      const input = document.getElementById('hoSubconIdInput');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    async function submitHoApproval() {
+      if (!activeHoRequest) return;
+      const subconId = document.getElementById('hoSubconIdInput').value.trim();
+      const comment = document.getElementById('hoApprovalCommentInput').value.trim() || 'Approved by Head Office Operations';
+      if (!subconId) {
+        alert('Please enter a Subcon ID before approving.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin-review/ho-clearance', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            requestId: activeHoRequest._id,
+            action: 'Approved',
+            subcon_id: subconId,
+            comment
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Approval failed');
+        closeHoModal();
+        await loadHoQueue();
+        alert('Head office approval successful.');
+      } catch (error) {
+        alert(error.message || 'Approval failed');
+      }
+    }
+
+    function handleLogout() {
+      const token = localStorage.getItem('token');
+      if (token) {
+        fetch('/user/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => {});
+      }
+      localStorage.clear();
+      window.location.href = '/user/login-page';
+    }
+
+    document.querySelectorAll('.hoTabBtn').forEach(button => {
+      button.addEventListener('click', () => setHoTab(button.dataset.view));
+    });
+
+    if (['HO', 'ERP_TEAM', 'DEVELOPER'].includes(currentRole)) {
+      setHoTab('pending');
+      loadHoQueue();
+    }
+  </script>
+</body>
+</html>

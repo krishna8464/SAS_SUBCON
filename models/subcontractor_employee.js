@@ -1,6 +1,14 @@
 const mongoose = require("mongoose");
 
 const SubcontractorEmployeeSchema = new mongoose.Schema({
+    subcon_id: {
+        type: String,
+        required: true,
+        trim: true,
+        uppercase: true,
+        unique: true,
+        sparse: true
+    },
     civil_id: {
         type: String,
         required: true,
@@ -56,7 +64,7 @@ const SubcontractorEmployeeSchema = new mongoose.Schema({
     },
     employment_status: {
         type: String,
-        enum: ["Active", "Inactive"],
+        enum: ["Active", "Inactive", "Pending Allocation"],
         default: "Active"
     },
     final_hse_doc_url: {

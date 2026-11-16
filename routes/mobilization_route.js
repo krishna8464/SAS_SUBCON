@@ -10,13 +10,14 @@ const {
     resubmitWorkerDocumentCorrection
 } = require("../controllers/mobilization_controller");
 const { authMiddleware } = require("../middleware/auth");
+const { authorizeRoles } = require("../middleware/role_access");
 const { uploadMobilizationFiles } = require("../middleware/upload"); // 🌟 IMPORT UPLOAD MIDDLEWARE
 
 const Mobilizationroute = express.Router();
 
 // 1. FRONTEND USER SUBCONTRACTOR VIEW ROUTE
-Mobilizationroute.get("/portal", (req, res) => {
-    res.render("supplier_portal"); // Renders your upcoming views/supplier_portal.ejs file
+Mobilizationroute.get("/portal", authMiddleware, authorizeRoles('SUPPLIER'), (req, res) => {
+    res.render("supplier_portal");
 });
 
 Mobilizationroute.get("/request-details/:id", (req, res) => {

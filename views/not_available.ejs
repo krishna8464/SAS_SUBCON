@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page Not Available</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center px-6">
+  <div class="max-w-xl w-full rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center shadow-2xl">
+    <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-rose-500/10 text-3xl border border-rose-500/20">
+      ⚠️
+    </div>
+    <p class="text-xs font-bold uppercase tracking-[0.25em] text-rose-400">Access issue</p>
+    <h1 class="mt-4 text-3xl font-black text-white">This page is not available</h1>
+    <p class="mt-4 text-sm text-slate-300"><%= message %></p>
+    <p class="mt-6 text-xs uppercase tracking-[0.2em] text-slate-500">Redirecting to login...</p>
+  </div>
+
+  <script>
+    setTimeout(() => {
+      window.location.href = '<%= redirectUrl %>';
+    }, 2500);
+  </script>
+</body>
+</html>
