@@ -7,12 +7,42 @@
     <!-- 1. Local Fallback Static Stylesheet Link -->
     <link rel="stylesheet" href="/css/style.css">
     <script>
-        if (localStorage.getItem('token')) {
-            window.location.replace('/user/dashboard-view');
-        }
+        (function () {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            fetch('/user/dashboard-view', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }).then((response) => {
+                if (response.ok) {
+                    window.location.replace('/user/dashboard-view');
+                    return;
+                }
+
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('email');
+                localStorage.removeItem('siteId');
+                localStorage.removeItem('supplierId');
+                document.cookie = 'token=; Max-Age=0; path=/';
+                document.cookie = 'role=; Max-Age=0; path=/';
+            }).catch(() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('email');
+                localStorage.removeItem('siteId');
+                localStorage.removeItem('supplierId');
+                document.cookie = 'token=; Max-Age=0; path=/';
+                document.cookie = 'role=; Max-Age=0; path=/';
+            });
+        })();
     </script>
     <!-- 2. Tailwind CSS Runtime Engine Script CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/theme.css"><script src="/js/theme_manager.js"></script><script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {

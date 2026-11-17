@@ -53,4 +53,16 @@ const purgeWorkforceBinaryFiles = async (fileUrls) => {
     }
 };
 
-module.exports = { purgeWorkforceBinaryFiles };
+const scheduleDocumentRetentionPurge = (fileUrls, daysToKeep = 10) => {
+    const cleanedUrls = Array.isArray(fileUrls) ? fileUrls.filter(Boolean) : [];
+    if (!cleanedUrls.length) return;
+
+    const retentionMs = Math.max(1, Number(daysToKeep) || 10) * 24 * 60 * 60 * 1000;
+    console.log(`Document retention scheduled: ${cleanedUrls.length} file(s) will be purged in ${Number(daysToKeep) || 10} day(s).`);
+
+    setTimeout(async () => {
+        await purgeWorkforceBinaryFiles(cleanedUrls);
+    }, retentionMs);
+};
+
+module.exports = { purgeWorkforceBinaryFiles, scheduleDocumentRetentionPurge };

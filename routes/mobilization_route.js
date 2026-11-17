@@ -16,8 +16,8 @@ const { uploadMobilizationFiles } = require("../middleware/upload"); // 🌟 IMP
 const Mobilizationroute = express.Router();
 
 // 1. FRONTEND USER SUBCONTRACTOR VIEW ROUTE
-Mobilizationroute.get("/portal", authMiddleware, authorizeRoles('SUPPLIER'), (req, res) => {
-    res.render("supplier_portal");
+Mobilizationroute.get("/portal", authMiddleware, authorizeRoles('SUPPLIER', 'DEVELOPER', 'HO', 'ERP_TEAM'), (req, res) => {
+    res.render("supplier_portal", { role: req.user.role });
 });
 
 Mobilizationroute.get("/request-details/:id", (req, res) => {

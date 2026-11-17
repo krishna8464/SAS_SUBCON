@@ -5,6 +5,12 @@ require("dotenv").config();
 const JWT_SECRET = process.env.JWT_SECRET || "SAS_SUBCON";
 
 const sendAuthFailure = (req, res, statusCode, message) => {
+  if (req.accepts("html") && req.path === "/portal" && req.baseUrl === "/mobilization") {
+    res.clearCookie("token");
+    res.clearCookie("role");
+    return res.redirect("/user/login-page");
+  }
+
   if (req.accepts("html")) {
     return res.status(statusCode).render("not_available", {
       message,
@@ -38,11 +44,14 @@ const authMiddleware = async (req, res, next) => {
     req.user = {
       id: decoded.userid,
       userid: decoded.userid,
+      name: decoded.name || "User",
+      email: decoded.email || "",
       role: decoded.role,
       site_id: decoded.siteId,
       siteId: decoded.siteId,
-      supplier_id: decoded.supplier_id || decoded.supplierId, // Injects your company link property cleanly!
-      supplierId: decoded.supplier_id || decoded.supplierId   // Injects duplicate protection mapping handles
+      supplier_id: decoded.supplier_id || decoded.supplierId,
+      supplierId: decoded.supplier_id || decoded.supplierId,
+      cell_number: decoded.cell_number || ""
     };
     
     req.tokenInfo = existingToken;

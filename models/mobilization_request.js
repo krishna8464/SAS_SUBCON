@@ -56,6 +56,10 @@ const MobilizationRequestSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    remarks: {
+        type: String,
+        default: ""
+    },
     medical_file_url: {
         type: String,
         required: true
@@ -119,6 +123,10 @@ const MobilizationRequestSchema = new mongoose.Schema({
     room_number: { 
         type: String, 
         default: "" 
+    },
+    subcon_id: {
+        type: String,
+        default: ""
     },
     submission_history: {
         type: Array,

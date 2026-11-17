@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SAS_SUBCON - Role Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script src="/js/professional_ui.js"></script><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme_manager.js"></script><script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -15,48 +16,78 @@
     };
   </script>
 </head>
-<body class="bg-slate-900 min-h-screen text-slate-100 font-sans antialiased">
-  <div class="max-w-7xl mx-auto px-6 py-8">
-    <header class="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl mb-6">
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <p class="text-xs uppercase tracking-[0.25em] text-emerald-400 font-bold">SAS_SUBCON</p>
-          <h1 class="text-3xl font-black mt-2">Operations Dashboard</h1>
-          <p class="text-slate-400 text-sm mt-1">Role-based workspace launcher for your team.</p>
+<body class="sas-dashboard bg-slate-900 min-h-screen text-slate-100 font-sans antialiased">
+  <div class="dashboard-shell max-w-7xl mx-auto px-6 py-8">
+    <header class="dashboard-header bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-6 shadow-2xl shadow-slate-950/30 mb-6">
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
+        <div class="flex items-center gap-4">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-lg font-black text-slate-950 shadow-lg shadow-emerald-500/20">
+            <%= (user && user.name ? user.name.charAt(0).toUpperCase() : 'U') %>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase tracking-[0.28em] text-emerald-400 font-bold">SAS_SUBCON</p>
+            <h1 class="text-3xl font-black mt-1 text-white">Operations Dashboard</h1>
+            <p class="text-slate-400 text-sm mt-1">Welcome back, <span class="text-slate-200 font-semibold"><%= user && user.name ? user.name : 'System User' %></span></p>
+          </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
-            <%= role %>
-          </span>
-          <button onclick="handleLogout()" class="bg-slate-800 text-slate-200 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 border border-slate-700 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition">
-            Logout
-          </button>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div class="bg-slate-900/70 border border-slate-700 rounded-2xl px-4 py-3 text-left min-w-[220px]">
+            <div class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Logged in as</div>
+            <div class="mt-1 text-sm font-bold text-white"><%= user && user.name ? user.name : 'System User' %></div>
+            <div class="text-[11px] text-slate-400"><%= user && user.email ? user.email : 'N/A' %></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.22em]">
+              <%= role %>
+            </span>
+            <button onclick="handleLogout()" class="bg-slate-800 text-slate-200 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 border border-slate-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.22em] transition">
+              Logout
+            </button>
+          </div>
         </div>
       </div>
     </header>
 
+    <% if (['HO','ERP_TEAM','DEVELOPER'].includes(role)) { %>
+      <nav class="dashboard-shortcuts mb-6 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3" aria-label="Operations navigation">
+        <a href="/user/manage-users" class="dashboard-shortcut"><span>Administration</span><strong>User Directory</strong></a>
+        <a href="/site/manage-sites" class="dashboard-shortcut"><span>Operations</span><strong>Sites</strong></a>
+        <a href="/supplier/manage-suppliers" class="dashboard-shortcut"><span>Suppliers</span><strong>Supplier Registry</strong></a>
+        <a href="/designation/manage-designations" class="dashboard-shortcut"><span>Standards</span><strong>Designations</strong></a>
+        <a href="/mobilization/portal" class="dashboard-shortcut"><span>Mobilization</span><strong>All Requests</strong></a>
+        <a href="/admin-review/report" class="dashboard-shortcut"><span>Reports</span><strong>Admin Report</strong></a>
+      </nav>
+    <% } %>
+
     <main class="max-w-7xl mx-auto px-0 py-6 space-y-6">
       <% if (['HO','ERP_TEAM','DEVELOPER'].includes(role)) { %>
-        <section class="bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <section class="approval-section bg-slate-950 border border-slate-800 rounded-2xl p-5 shadow-xl">
           <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-5">
             <div>
               <p class="text-[10px] uppercase tracking-[0.25em] text-violet-400 font-bold">Head Office</p>
               <h1 class="text-3xl font-black mt-2">Final Approval Queue</h1>
             </div>
             <div class="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wider">
+              <a href="/admin-review/report" class="bg-slate-800 border border-slate-700 hover:border-violet-500/40 hover:bg-slate-900 text-slate-200 px-3 py-1.5 rounded-full transition">Admin Report</a>
               <span id="hoPendingBadge" class="bg-amber-500/10 text-amber-300 border border-amber-500/20 rounded-full px-3 py-1.5">Pending: 0</span>
               <span id="hoCompletedBadge" class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 rounded-full px-3 py-1.5">Completed: 0</span>
             </div>
           </div>
 
-          <div class="flex flex-wrap gap-2 mb-4">
-            <button type="button" data-view="pending" class="hoTabBtn bg-violet-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-violet-500/30">Pending</button>
-            <button type="button" data-view="completed" class="hoTabBtn bg-slate-900 text-slate-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-slate-700">Completed</button>
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+            <div class="flex flex-wrap gap-2">
+              <button type="button" data-view="pending" class="hoTabBtn bg-violet-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-violet-500/30">Pending</button>
+              <button type="button" data-view="completed" class="hoTabBtn bg-slate-900 text-slate-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-slate-700">Completed</button>
+            </div>
+            <div class="relative w-full md:max-w-xs">
+              <input id="hoSearchInput" type="text" placeholder="Search worker, site, supplier or civ ID" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-3 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-violet-500" oninput="updateHoSearchFilter()" />
+              <span class="absolute left-3 top-2.5 text-slate-500 text-sm">🔎</span>
+            </div>
           </div>
 
-          <div id="hoPendingView" class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[1100px]">
+          <div id="hoPendingView" class="dashboard-table-wrap overflow-x-auto">
+            <table class="dashboard-table w-full text-left border-collapse min-w-[1100px]">
               <thead>
                 <tr class="border-b border-slate-800 text-slate-400 text-[10px] uppercase tracking-wider font-bold">
                   <th class="px-3 py-3">Worker</th>
@@ -70,8 +101,8 @@
             </table>
           </div>
 
-          <div id="hoCompletedView" class="hidden overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[1100px]">
+          <div id="hoCompletedView" class="dashboard-table-wrap hidden overflow-x-auto">
+            <table class="dashboard-table w-full text-left border-collapse min-w-[1100px]">
               <thead>
                 <tr class="border-b border-slate-800 text-slate-400 text-[10px] uppercase tracking-wider font-bold">
                   <th class="px-3 py-3">Worker</th>
@@ -85,58 +116,24 @@
             </table>
           </div>
         </section>
-
-        <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          <a href="/user/manage-users" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/40 hover:bg-slate-900 transition">
-            <p class="text-xs uppercase tracking-wider text-emerald-400 font-bold mb-3">Administration</p>
-            <h2 class="text-2xl font-black mb-2">User Directory</h2>
-            <p class="text-slate-400 text-sm">Manage access, roles, and account status.</p>
-          </a>
-
-          <a href="/site/manage-sites" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-cyan-500/40 hover:bg-slate-900 transition">
-            <p class="text-xs uppercase tracking-wider text-cyan-400 font-bold mb-3">Operations</p>
-            <h2 class="text-2xl font-black mb-2">Site Management</h2>
-            <p class="text-slate-400 text-sm">Monitor and maintain active deployment sites.</p>
-          </a>
-
-          <a href="/supplier/manage-suppliers" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-amber-500/40 hover:bg-slate-900 transition">
-            <p class="text-xs uppercase tracking-wider text-amber-400 font-bold mb-3">Suppliers</p>
-            <h2 class="text-2xl font-black mb-2">Supplier Registry</h2>
-            <p class="text-slate-400 text-sm">Track registered subcontractor companies.</p>
-          </a>
-
-          <a href="/designation/manage-designations" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-violet-500/40 hover:bg-slate-900 transition md:col-span-2 xl:col-span-3">
-            <p class="text-xs uppercase tracking-wider text-violet-400 font-bold mb-3">Standards</p>
-            <h2 class="text-2xl font-black mb-2">Designations</h2>
-            <p class="text-slate-400 text-sm">Control classifications and trade risk levels.</p>
-          </a>
-        </section>
-      <% } %>
-
-      <% if (role === 'SUPPLIER') { %>
-        <a href="/mobilization/portal" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/40 hover:bg-slate-900 transition md:col-span-2 xl:col-span-3">
-          <p class="text-xs uppercase tracking-wider text-emerald-400 font-bold mb-3">Supplier Portal</p>
-          <h2 class="text-2xl font-black mb-2">Mobilization Hub</h2>
-          <p class="text-slate-400 text-sm">Submit worker packets, upload compliance documents, and track review status.</p>
-        </a>
-      <% } %>
-
-      <% if (['SITE_MEDIC','SITE_HSE'].includes(role)) { %>
-        <a href="/user/medic-dashboard" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-blue-500/40 hover:bg-slate-900 transition md:col-span-2 xl:col-span-3">
-          <p class="text-xs uppercase tracking-wider text-blue-400 font-bold mb-3">Clinical Review</p>
-          <h2 class="text-2xl font-black mb-2">Medical & Compliance Desk</h2>
-          <p class="text-slate-400 text-sm">Review worker submissions, approve fit-for-duty certifications, and manage follow-up actions.</p>
-        </a>
-      <% } %>
-
-      <% if (role === 'SITE_MANAGER') { %>
-        <a href="/site/manage-sites" class="bg-slate-950 border border-slate-800 rounded-2xl p-6 hover:border-cyan-500/40 hover:bg-slate-900 transition md:col-span-2 xl:col-span-3">
-          <p class="text-xs uppercase tracking-wider text-cyan-400 font-bold mb-3">Site Control</p>
-          <h2 class="text-2xl font-black mb-2">Site Registry</h2>
-          <p class="text-slate-400 text-sm">Track deployment locations and manage site-level operational records.</p>
-        </a>
       <% } %>
     </main>
+  </div>
+
+  <div id="hoApprovalResultModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[60] p-4 overflow-y-auto">
+    <div class="max-w-4xl mx-auto mt-10 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+      <div class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] uppercase tracking-[0.25em] text-emerald-400 font-bold">Final Approval</p>
+          <h3 class="text-2xl font-black text-white mt-1">Employee Approval Summary</h3>
+        </div>
+        <button onclick="closeHoResultModal()" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-wider">Close</button>
+      </div>
+      <div class="p-6">
+        <div id="finalApprovalMeta" class="mb-4 text-sm text-slate-300"></div>
+        <pre id="finalApprovalBody" class="whitespace-pre-wrap bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs text-slate-200 overflow-x-auto"></pre>
+      </div>
+    </div>
   </div>
 
   <div id="hoApprovalModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 p-4 overflow-y-auto">
@@ -150,6 +147,40 @@
       </div>
 
       <div class="p-6 space-y-6">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <div class="text-[10px] uppercase tracking-[0.25em] text-slate-500">Approval Summary</div>
+          <button id="toggleHoSummaryBtn" onclick="toggleHoSummary()" class="bg-slate-800 text-slate-200 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-wider">Show Summary</button>
+        </div>
+        <div id="finalApprovalSummaryBlock" class="hidden bg-slate-950 border border-slate-800 rounded-2xl p-4">
+          <div id="finalApprovalMetaInline" class="mb-4 text-sm text-slate-300"></div>
+          <pre id="finalApprovalBodyInline" class="whitespace-pre-wrap bg-slate-900 border border-slate-800 rounded-2xl p-4 text-xs text-slate-200 overflow-x-auto"></pre>
+        </div>
+        <div id="quickReviewActionsWrap" class="bg-slate-950 border border-slate-800 rounded-2xl p-5 hidden">
+          <h4 class="text-xs uppercase tracking-[0.25em] text-cyan-400 font-bold mb-4">Quick Review Actions</h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div id="quickReviewMedicCard" class="border border-slate-800 rounded-xl bg-slate-900 p-3">
+              <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Medical</p>
+              <div class="flex items-center gap-2">
+                <button onclick="quickGateAction('Medic', 'Approved')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg transition">Approve</button>
+                <button onclick="quickGateAction('Medic', 'Resubmit')" class="flex-1 bg-rose-500/15 hover:bg-rose-500/20 text-rose-300 text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border border-rose-500/20 transition">Resubmit</button>
+              </div>
+            </div>
+            <div id="quickReviewHseCard" class="border border-slate-800 rounded-xl bg-slate-900 p-3">
+              <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">HSE</p>
+              <div class="flex items-center gap-2">
+                <button onclick="quickGateAction('HSE', 'Approved')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg transition">Approve</button>
+                <button onclick="quickGateAction('HSE', 'Resubmit')" class="flex-1 bg-rose-500/15 hover:bg-rose-500/20 text-rose-300 text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border border-rose-500/20 transition">Resubmit</button>
+              </div>
+            </div>
+            <div id="quickReviewWqtCard" class="border border-slate-800 rounded-xl bg-slate-900 p-3 hidden">
+              <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">WQT</p>
+              <div class="flex items-center gap-2">
+                <button onclick="quickGateAction('WQT_Team', 'Approved')" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg transition">Approve</button>
+                <button onclick="quickGateAction('WQT_Team', 'Resubmit')" class="flex-1 bg-rose-500/15 hover:bg-rose-500/20 text-rose-300 text-[10px] font-black uppercase tracking-wider px-3 py-2 rounded-lg border border-rose-500/20 transition">Resubmit</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
             <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Worker</p>
@@ -235,7 +266,7 @@
             </div>
             <div>
               <label class="block text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Approval Note</label>
-              <input id="hoApprovalCommentInput" type="text" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Head office approval note" value="Approved by Head Office Operations" />
+              <textarea id="hoApprovalCommentInput" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Explain why Head Office is approving this worker from the final review stage.">Approved by Head Office Operations</textarea>
             </div>
           </div>
           <div class="mt-4 flex justify-end">
@@ -252,9 +283,12 @@
     let hoQueueData = [];
     let activeHoRequest = null;
     let currentHoView = 'pending';
+    let hoSearchQuery = '';
+
+    const isAllowedUser = ['HO', 'ERP_TEAM', 'DEVELOPER'].includes(currentRole);
 
     function statusBadgeClass(status) {
-      if (status === 'Pending HO Approval') return 'bg-amber-500/10 text-amber-300 border border-amber-500/20';
+      if (status === 'Under Review' || status === 'Pending HO Approval') return 'bg-amber-500/10 text-amber-300 border border-amber-500/20';
       if (status === 'Approved') return 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20';
       if (status === 'Rejected') return 'bg-rose-500/10 text-rose-300 border border-rose-500/20';
       if (status === 'Pending Site Admin') return 'bg-blue-500/10 text-blue-300 border border-blue-500/20';
@@ -284,6 +318,12 @@
       });
     }
 
+    function updateHoSearchFilter() {
+      const input = document.getElementById('hoSearchInput');
+      hoSearchQuery = (input ? input.value : '').toLowerCase().trim();
+      renderHoQueue();
+    }
+
     function renderHoQueue() {
       const pendingTable = document.getElementById('hoPendingTableBody');
       const completedTable = document.getElementById('hoCompletedTableBody');
@@ -291,14 +331,26 @@
       const completedBadge = document.getElementById('hoCompletedBadge');
       if (!pendingTable || !completedTable) return;
 
-      const pending = hoQueueData.filter(item => item.status === 'Pending HO Approval');
-      const completed = hoQueueData.filter(item => ['Pending Site Admin', 'Approved', 'Rejected', 'Cancelled'].includes(item.status));
+      const filtered = hoQueueData.filter(item => {
+        if (!hoSearchQuery) return true;
+        const haystack = [
+          item.employee_name || '',
+          item.civil_id || '',
+          item.target_site_id && item.target_site_id.site_name ? item.target_site_id.site_name : '',
+          item.sub_company_id && item.sub_company_id.supplier_name ? item.sub_company_id.supplier_name : '',
+          item.status || ''
+        ].join(' ').toLowerCase();
+        return haystack.includes(hoSearchQuery);
+      });
 
-      pendingBadge.textContent = `Pending: ${pending.length}`;
+      const pending = filtered.filter(item => !['Approved', 'Rejected', 'Cancelled'].includes(item.status));
+      const completed = filtered.filter(item => ['Approved', 'Rejected', 'Cancelled'].includes(item.status));
+
+      pendingBadge.textContent = `In Progress: ${pending.length}`;
       completedBadge.textContent = `Completed: ${completed.length}`;
 
       if (!pending.length) {
-        pendingTable.innerHTML = '<tr><td colspan="5" class="px-3 py-8 text-center text-slate-500 text-xs uppercase tracking-wider">No pending applications are waiting for Head Office approval.</td></tr>';
+        pendingTable.innerHTML = '<tr><td colspan="5" class="px-3 py-8 text-center text-slate-500 text-xs uppercase tracking-wider">No in-progress applications are currently waiting for Head Office oversight.</td></tr>';
       } else {
         pendingTable.innerHTML = pending.map(request => {
           const workerName = request.employee_name || 'Unknown worker';
@@ -338,14 +390,19 @@
         completedTable.innerHTML = completed.map(request => {
           const workerName = request.employee_name || 'Unknown worker';
           const civilId = request.civil_id || 'N/A';
+          const subconId = request.subcon_id || 'N/A';
           const siteName = request.target_site_id && request.target_site_id.site_name ? request.target_site_id.site_name : 'N/A';
           const supplierName = request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : 'N/A';
           const reviewSummary = `${request.medical_status || 'Pending'} / ${request.hse_status || 'Pending'} / ${request.wqt_status || 'Not Required'}`;
           return `
             <tr class="border-b border-slate-800/60 align-top">
               <td class="px-3 py-4">
-                <div class="font-bold text-white">${workerName}</div>
-                <div class="text-[10px] text-slate-500 font-mono">${civilId}</div>
+                <div class="font-black text-lg text-white">${workerName}</div>
+                <div class="text-[10px] text-slate-500 font-mono mt-1">${civilId}</div>
+                <div class="mt-3 flex items-center gap-2">
+                  <span class="text-[9px] uppercase tracking-[0.22em] text-emerald-300/80">Subcon ID</span>
+                  <span class="inline-flex items-center rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-1 text-sm font-black text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.12)]">${subconId}</span>
+                </div>
               </td>
               <td class="px-3 py-4">
                 <div class="text-xs text-slate-300">${siteName}</div>
@@ -383,41 +440,114 @@
       }
     }
 
+    function buildHoSummaryText(request) {
+      const supplierName = request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : 'N/A';
+      const siteName = request.target_site_id && request.target_site_id.site_name ? request.target_site_id.site_name : 'N/A';
+      const designation = request.designation_id && request.designation_id.title ? request.designation_id.title : 'N/A';
+      const approvedDate = request.approvedAt || request.updatedAt || request.createdAt || new Date().toISOString();
+      const finalStatus = request.status || 'Pending';
+      const subconId = request.subcon_id || 'Not yet assigned';
+
+      return [
+        'Approval Confirmation Email',
+        `Date: ${new Date(approvedDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+        '----------------------------------------',
+        `| Supplier Email | ${supplierName} |`,
+        `| Employee Name | ${request.employee_name || 'N/A'} |`,
+        `| Civil ID | ${request.civil_id || 'N/A'} |`,
+        `| Nationality | ${request.nationality || 'N/A'} |`,
+        `| Designation | ${designation} |`,
+        `| Site | ${siteName} |`,
+        `| Subcon ID | ${subconId} |`,
+        `| Supplier | ${supplierName} |`,
+        `| Status | ${finalStatus} |`,
+        `| Approval Date | ${new Date(approvedDate).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} |`,
+        '----------------------------------------'
+      ].join('\n');
+    }
+
+    function syncHoApprovalSummary(request) {
+      const summaryText = buildHoSummaryText(request);
+      const meta = document.getElementById('finalApprovalMetaInline');
+      const body = document.getElementById('finalApprovalBodyInline');
+      const block = document.getElementById('finalApprovalSummaryBlock');
+
+      if (meta) {
+        meta.innerHTML = `
+          <div class="space-y-3">
+            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-emerald-200">
+              <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]"></span>
+              ${request.status || 'Pending'}
+            </div>
+            <div class="flex flex-wrap gap-3 text-xs uppercase tracking-wider">
+              <span class="inline-flex px-2 py-1 rounded-full bg-emerald-500/12 text-emerald-300 border border-emerald-500/25">Status: ${request.status || 'Pending'}</span>
+              <span class="inline-flex px-2 py-1 rounded-full bg-sky-500/12 text-sky-300 border border-sky-500/25">Supplier: ${request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : 'N/A'}</span>
+              <span class="inline-flex px-2 py-1 rounded-full bg-violet-500/12 text-violet-300 border border-violet-500/25">Subcon: ${request.subcon_id || 'Not assigned yet'}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      if (body) body.textContent = summaryText;
+      if (block) {
+        block.classList.remove('hidden');
+        setHoSummaryToggleButton(true);
+      }
+    }
+
     function openHoModal(requestId) {
       const request = hoQueueData.find(item => item._id === requestId);
       if (!request) return;
 
       activeHoRequest = request;
-      document.getElementById('hoModalTitle').textContent = `${request.employee_name || 'Worker'} Approval Ledger`;
-      document.getElementById('modalWorkerName').textContent = request.employee_name || 'Unknown';
-      document.getElementById('modalCivilId').textContent = `CIVIL ID: ${request.civil_id || 'N/A'}`;
-      document.getElementById('modalNationality').textContent = `${request.nationality || '--'} / ${request.dob ? new Date(request.dob).toLocaleDateString('en-GB') : '--'}`;
-      document.getElementById('modalDob').textContent = request.dob ? `DOB: ${new Date(request.dob).toLocaleDateString('en-GB')}` : 'DOB: --';
-      document.getElementById('modalSite').textContent = request.target_site_id && request.target_site_id.site_name ? request.target_site_id.site_name : 'N/A';
-      document.getElementById('modalSupplier').textContent = request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : 'N/A';
-      document.getElementById('modalStatus').textContent = request.status || 'Unknown';
-      document.getElementById('modalStatus').className = `inline-flex px-2 py-1 rounded-full text-[10px] uppercase tracking-wider font-black ${statusBadgeClass(request.status)}`;
-      document.getElementById('modalDesignation').textContent = request.designation_id && request.designation_id.title ? request.designation_id.title : 'N/A';
-      document.getElementById('modalSponsor').textContent = request.sponsor_company || 'N/A';
-      document.getElementById('modalMobile').textContent = request.mobile_number || 'N/A';
-      document.getElementById('modalAccommodation').textContent = request.accommodation_type || 'N/A';
-      document.getElementById('modalUrgency').textContent = request.urgency || 'Normal';
-      document.getElementById('modalCreatedAt').textContent = formatDate(request.createdAt);
-      document.getElementById('modalMedicalStatus').textContent = request.medical_status || 'Pending';
-      document.getElementById('modalHseStatus').textContent = request.hse_status || 'Pending';
-      document.getElementById('modalWqtStatus').textContent = request.wqt_status || 'Not Required';
-      document.getElementById('modalHoStatus').textContent = request.status || 'Pending';
-      document.getElementById('modalMedicalComment').textContent = request.medical_comment || 'No medical note recorded';
-      document.getElementById('modalHseComment').textContent = request.hse_comment || 'No HSE note recorded';
+      const setModalText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      };
+
+      setModalText('hoModalTitle', `${request.employee_name || 'Worker'} Approval Ledger`);
+      setModalText('modalWorkerName', request.employee_name || 'Unknown');
+      setModalText('modalCivilId', `CIVIL ID: ${request.civil_id || 'N/A'}`);
+      setModalText('modalNationality', `${request.nationality || '--'} / ${request.dob ? new Date(request.dob).toLocaleDateString('en-GB') : '--'}`);
+      setModalText('modalDob', request.dob ? `DOB: ${new Date(request.dob).toLocaleDateString('en-GB')}` : 'DOB: --');
+      setModalText('modalSite', request.target_site_id && request.target_site_id.site_name ? request.target_site_id.site_name : 'N/A');
+      setModalText('modalSupplier', request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : 'N/A');
+      setModalText('modalStatus', request.status || 'Unknown');
+      const modalStatusElement = document.getElementById('modalStatus');
+      if (modalStatusElement) {
+        modalStatusElement.className = `inline-flex px-2 py-1 rounded-full text-[10px] uppercase tracking-wider font-black ${statusBadgeClass(request.status)}`;
+      }
+      setModalText('modalDesignation', request.designation_id && request.designation_id.title ? request.designation_id.title : 'N/A');
+      setModalText('modalSponsor', request.sponsor_company || 'N/A');
+      setModalText('modalMobile', request.mobile_number || 'N/A');
+      setModalText('modalAccommodation', request.accommodation_type || 'N/A');
+      setModalText('modalUrgency', request.urgency || 'Normal');
+      setModalText('modalCreatedAt', formatDate(request.createdAt));
+      setModalText('modalMedicalStatus', request.medical_status || 'Pending');
+      setModalText('modalHseStatus', request.hse_status || 'Pending');
+      setModalText('modalWqtStatus', request.wqt_status || 'Not Required');
+      setModalText('modalHoStatus', request.status || 'Pending');
+      setModalText('modalMedicalComment', request.medical_comment || 'No medical note recorded');
+      setModalText('modalHseComment', request.hse_comment || 'No HSE note recorded');
 
       const medicalFileLink = document.getElementById('modalMedicalFile');
       const hseFileLink = document.getElementById('modalHseFile');
       const wqtFileLink = document.getElementById('modalWqtFile');
-      medicalFileLink.href = request.medical_file_url || '#';
-      hseFileLink.href = request.hse_file_url || '#';
-      wqtFileLink.href = request.wqt_file_url || '#';
-      wqtFileLink.style.opacity = request.wqt_file_url ? '1' : '0.4';
-      wqtFileLink.textContent = request.wqt_file_url ? 'Open' : 'Not Provided';
+      if (medicalFileLink) {
+        medicalFileLink.href = request.medical_file_url || '#';
+        medicalFileLink.textContent = request.medical_file_url ? 'Open' : 'Not Provided';
+        medicalFileLink.style.opacity = request.medical_file_url ? '1' : '0.4';
+      }
+      if (hseFileLink) {
+        hseFileLink.href = request.hse_file_url || '#';
+        hseFileLink.textContent = request.hse_file_url ? 'Open' : 'Not Provided';
+        hseFileLink.style.opacity = request.hse_file_url ? '1' : '0.4';
+      }
+      if (wqtFileLink) {
+        wqtFileLink.href = request.wqt_file_url || '#';
+        wqtFileLink.style.opacity = request.wqt_file_url ? '1' : '0.4';
+        wqtFileLink.textContent = request.wqt_file_url ? 'Open' : 'Not Provided';
+      }
 
       const historyWrap = document.getElementById('modalHistory');
       historyWrap.innerHTML = (request.submission_history || []).length
@@ -433,13 +563,170 @@
         : '<div class="text-xs text-slate-500">No transaction history recorded yet.</div>';
 
       const formWrap = document.getElementById('hoApprovalFormWrap');
-      formWrap.classList.toggle('hidden', request.status !== 'Pending HO Approval');
+      const isTerminal = ['Approved', 'Rejected', 'Cancelled'].includes(request.status);
+      const isApproved = request.status === 'Approved';
+      const canApprove = !isTerminal && ['Pending HO Approval', 'Under Review', 'Pending Site Admin'].includes(request.status);
+
+      if (formWrap) formWrap.classList.toggle('hidden', !canApprove);
+
+      if (canApprove) {
+        const subconInput = document.getElementById('hoSubconIdInput');
+        const commentInput = document.getElementById('hoApprovalCommentInput');
+        if (subconInput && !subconInput.value.trim()) subconInput.value = '';
+        if (commentInput && !commentInput.value.trim()) commentInput.value = 'Approved by Head Office Operations';
+      }
+
+      const medicStatus = (request.medical_status || 'Pending').trim();
+      const hseStatus = (request.hse_status || 'Pending').trim();
+      const wqtStatus = (request.wqt_status || 'Not Required').trim();
+      const isWelderTrade = request.designation_id && request.designation_id.title && request.designation_id.title.toLowerCase().includes('welder');
+
+      const medicCard = document.getElementById('quickReviewMedicCard');
+      const hseCard = document.getElementById('quickReviewHseCard');
+      const wqtCard = document.getElementById('quickReviewWqtCard');
+
+      const medicPending = medicStatus !== 'Approved' && medicStatus !== 'Not Required' && !isApproved;
+      const hsePending = hseStatus !== 'Approved' && hseStatus !== 'Not Required' && !isApproved;
+      const wqtPending = isWelderTrade && wqtStatus !== 'Approved' && wqtStatus !== 'Not Required' && !isApproved;
+
+      if (medicCard) medicCard.classList.toggle('hidden', !isAllowedUser || !medicPending);
+      if (hseCard) hseCard.classList.toggle('hidden', !isAllowedUser || !hsePending);
+      if (wqtCard) wqtCard.classList.toggle('hidden', !isAllowedUser || !wqtPending);
+
+      const quickReviewActions = document.getElementById('quickReviewActionsWrap');
+      if (quickReviewActions) {
+        quickReviewActions.classList.toggle('hidden', !isAllowedUser || isApproved || (!medicPending && !hsePending && !wqtPending));
+      }
+
+      syncHoApprovalSummary(request);
       document.getElementById('hoApprovalModal').classList.remove('hidden');
     }
 
     function closeHoModal() {
+      const summaryBlock = document.getElementById('finalApprovalSummaryBlock');
+      if (summaryBlock) summaryBlock.classList.add('hidden');
+      setHoSummaryToggleButton(false);
       document.getElementById('hoApprovalModal').classList.add('hidden');
       activeHoRequest = null;
+    }
+
+    function setHoSummaryToggleButton(isVisible) {
+      const toggleBtn = document.getElementById('toggleHoSummaryBtn');
+      if (toggleBtn) toggleBtn.textContent = isVisible ? 'Hide Summary' : 'Show Summary';
+    }
+
+    function toggleHoSummary() {
+      const inlineBlock = document.getElementById('finalApprovalSummaryBlock');
+      if (!inlineBlock) return;
+      const shouldShow = inlineBlock.classList.contains('hidden');
+      inlineBlock.classList.toggle('hidden', !shouldShow);
+      setHoSummaryToggleButton(shouldShow);
+    }
+
+    function openHoResultModal(summaryText, data) {
+      const meta = document.getElementById('finalApprovalMetaInline');
+      const body = document.getElementById('finalApprovalBodyInline');
+      const inlineBlock = document.getElementById('finalApprovalSummaryBlock');
+
+      if (meta) {
+        meta.innerHTML = `
+          <div class="space-y-3">
+            <div class="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.25em] text-emerald-200">
+              <span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]"></span>
+              Final Approval
+            </div>
+            <div class="flex flex-wrap gap-3 text-xs uppercase tracking-wider">
+              <span class="inline-flex px-2 py-1 rounded-full bg-emerald-500/12 text-emerald-300 border border-emerald-500/25">Status: ${data?.request?.status || 'Approved'}</span>
+              <span class="inline-flex px-2 py-1 rounded-full bg-sky-500/12 text-sky-300 border border-sky-500/25">Supplier: ${data?.supplierEmail || 'N/A'}</span>
+              <span class="inline-flex px-2 py-1 rounded-full bg-violet-500/12 text-violet-300 border border-violet-500/25">Approved at: ${data?.approvedAt ? new Date(data.approvedAt).toLocaleString('en-GB') : 'N/A'}</span>
+            </div>
+          </div>
+        `;
+      }
+      if (body) body.textContent = summaryText || 'Approval summary unavailable.';
+      if (inlineBlock) {
+        inlineBlock.classList.remove('hidden');
+        setHoSummaryToggleButton(true);
+      }
+      const modal = document.getElementById('hoApprovalModal');
+      if (modal) {
+        modal.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function closeHoResultModal() {
+      const inlineBlock = document.getElementById('finalApprovalSummaryBlock');
+      if (inlineBlock) {
+        inlineBlock.classList.add('hidden');
+      }
+      setHoSummaryToggleButton(false);
+      const modal = document.getElementById('hoApprovalResultModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    async function quickGateAction(department, action) {
+      if (!activeHoRequest) return;
+
+      if (['Approved', 'Rejected', 'Cancelled'].includes(activeHoRequest.status)) {
+        alert('This application is already closed and no further approval actions are available.');
+        return;
+      }
+
+      if (department === 'Medic') {
+        const medicStatus = (activeHoRequest.medical_status || 'Pending').trim();
+        if (medicStatus === 'Approved' || medicStatus === 'Not Required') {
+          alert('Medical approval is already complete for this request.');
+          return;
+        }
+      }
+
+      if (department === 'HSE') {
+        const hseStatus = (activeHoRequest.hse_status || 'Pending').trim();
+        if (hseStatus === 'Approved' || hseStatus === 'Not Required') {
+          alert('HSE approval is already complete for this request.');
+          return;
+        }
+      }
+
+      if (department === 'WQT_Team') {
+        const wqtStatus = (activeHoRequest.wqt_status || 'Not Required').trim();
+        if (wqtStatus === 'Approved' || wqtStatus === 'Not Required') {
+          alert('WQT approval is not pending for this request.');
+          return;
+        }
+      }
+
+      const manualReasonField = document.getElementById('hoApprovalCommentInput');
+      const note = action === 'Approved'
+        ? (manualReasonField && manualReasonField.value.trim() ? manualReasonField.value.trim() : 'Approved by Head Office Operations')
+        : (manualReasonField && manualReasonField.value.trim() ? manualReasonField.value.trim() : 'Resubmission requested by Head Office Operations');
+      const endpoint = department === 'Medic' ? '/admin-review/medic/evaluate' : '/admin-review/review-docs';
+
+      try {
+        const payload = department === 'Medic'
+          ? { requestId: activeHoRequest._id, decision: action, comments: note }
+          : { requestId: activeHoRequest._id, department, action, comment: note };
+
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Review action failed');
+
+        alert(`${department} review ${action.toLowerCase()} recorded.`);
+        await loadHoQueue();
+        if (action === 'Approved') {
+          openHoModal(activeHoRequest._id);
+        }
+      } catch (error) {
+        alert(error.message || 'Unable to update review gate');
+      }
     }
 
     async function approveHoRequest(requestId) {
@@ -459,6 +746,14 @@
       const comment = document.getElementById('hoApprovalCommentInput').value.trim() || 'Approved by Head Office Operations';
       if (!subconId) {
         alert('Please enter a Subcon ID before approving.');
+        return;
+      }
+      if (activeHoRequest && ['Approved', 'Rejected', 'Cancelled'].includes(activeHoRequest.status)) {
+        alert('This application is already approved and closed. No further HO approval action is available.');
+        return;
+      }
+      if (activeHoRequest.status !== 'Pending HO Approval') {
+        alert('The Medical, HSE, and required WQT gates must be completed before Head Office approval can be submitted.');
         return;
       }
 
@@ -481,7 +776,12 @@
         if (!res.ok) throw new Error(data.message || 'Approval failed');
         closeHoModal();
         await loadHoQueue();
-        alert('Head office approval successful.');
+
+        if (data.approvalEmailBody) {
+          openHoResultModal(data.approvalEmailBody, data);
+        } else {
+          openHoResultModal('Head office approval successful.\n\nNo email body was returned for this request.', { request: activeHoRequest, approvedAt: new Date().toISOString() });
+        }
       } catch (error) {
         alert(error.message || 'Approval failed');
       }
@@ -498,6 +798,11 @@
       localStorage.clear();
       window.location.href = '/user/login-page';
     }
+
+    window.openHoModal = openHoModal;
+    window.approveHoRequest = approveHoRequest;
+    window.submitHoApproval = submitHoApproval;
+    window.quickGateAction = quickGateAction;
 
     document.querySelectorAll('.hoTabBtn').forEach(button => {
       button.addEventListener('click', () => setHoTab(button.dataset.view));

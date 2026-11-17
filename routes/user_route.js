@@ -12,6 +12,8 @@ const {
 const { authMiddleware } = require("../middleware/auth");
 const { authorizeRoles } = require("../middleware/role_access");
 
+const User = require("../models/user");
+
 const Userroute = express.Router();
 
 // 1. FRONTEND WORKSPACE PAGE RENDERING VIEWS REROUTES
@@ -19,13 +21,29 @@ Userroute.get("/login-page", (req, res) => {
     res.render("login");
 });
 
-Userroute.get("/dashboard-view", authMiddleware, (req, res) => {
+Userroute.get("/dashboard-view", authMiddleware, async (req, res) => {
     const role = req.user.role;
 
     if (role === 'SUPPLIER') return res.redirect('/mobilization/portal');
     if (['SITE_MEDIC', 'SITE_HSE'].includes(role)) return res.redirect('/user/medic-dashboard');
     if (role === 'SITE_MANAGER') return res.redirect('/site/manage-sites');
-    if (['HO', 'ERP_TEAM', 'DEVELOPER'].includes(role)) return res.render('dashboard', { role });
+    if (['HO', 'ERP_TEAM', 'DEVELOPER'].includes(role)) {
+        const currentUser = await User.findById(req.user.id)
+            .populate('site_id', 'site_name site_code location')
+            .populate('supplier_id', 'supplier_name registration_number');
+
+        return res.render('dashboard', {
+            role,
+            user: currentUser ? currentUser.toObject() : {
+                name: req.user.name || 'System User',
+                email: req.user.email || 'N/A',
+                role,
+                cell_number: req.user.cell_number || 'N/A',
+                site_id: null,
+                supplier_id: null
+            }
+        });
+    }
 
     return res.redirect('/user/login-page');
 });
@@ -53,6 +71,6 @@ Userroute.post("/logout", authMiddleware, logoutUser);
 Userroute.get("/all", authMiddleware, getAllUserProfiles);                     // GET -> /user/all
 Userroute.put("/toggle-status/:id", authMiddleware, toggleUserAccountStatus);  // PUT -> /user/toggle-status/:id
 
-Userroute.put("/update-profile/:id", authMiddleware, updateUserProfile);
+Userroute.put("/update-profile/:id", authMiddleware, authorizeRoles('HO', 'ERP_TEAM', 'DEVELOPER'), updateUserProfile);
 
 module.exports = { Userroute };

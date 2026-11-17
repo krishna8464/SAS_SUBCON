@@ -6,7 +6,7 @@
     <title>SAS_SUBCON - Medical Evaluation Deck</title>
     <script src="/js/auth_guard.js"></script>
     <!-- Tailwind CSS Runtime CDN Engine Wrapper -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/professional_ui.js"></script><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme_manager.js"></script><script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
@@ -57,18 +57,18 @@
                 <div>
                     <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
                         <span>SAS_SUBCON</span>
-                        <span class="text-xs bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-500/30">Site Clinic</span>
+                        <span id="roleDeskBadge" class="text-xs bg-blue-500/20 text-blue-400 font-bold px-2 py-0.5 rounded border border-blue-500/30">Site Clinic</span>
                     </h1>
-                    <p class="text-xs text-slate-400 font-medium mt-0.5">Medical Officer Verification Command Cockpit & Deployment Desk</p>
+                    <p id="roleDeskSubtitle" class="text-xs text-slate-400 font-medium mt-0.5">Medical Officer Verification Command Cockpit & Deployment Desk</p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
                     <nav class="flex flex-wrap items-center gap-2">
-                        <a href="/user/manage-users" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Users</a>
-                        <a href="/site/manage-sites" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Sites</a>
-                        <a href="/supplier/manage-suppliers" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Suppliers</a>
-                        <a href="/designation/manage-designations" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Designations</a>
-                        <a href="/mobilization/portal" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Portal</a>
+                        <a data-nav="users" href="/user/manage-users" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Users</a>
+                        <a data-nav="sites" href="/site/manage-sites" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Sites</a>
+                        <a data-nav="suppliers" href="/supplier/manage-suppliers" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Suppliers</a>
+                        <a data-nav="designations" href="/designation/manage-designations" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Designations</a>
+                        <a data-nav="portal" href="/mobilization/portal" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Portal</a>
                     </nav>
                     <button type="button" onclick="handleSystemLogout()" class="bg-slate-800 hover:bg-rose-600/20 hover:text-rose-400 hover:border-rose-500/30 text-slate-200 text-xs font-bold px-4 py-2 rounded-xl transition border border-slate-700 shadow-md active:scale-[0.98]">
                         Disconnect Session
@@ -135,9 +135,41 @@
         const token = localStorage.getItem('token');
         const currentUserRole = localStorage.getItem('role') || 'SITE_MEDIC';
         const isHseReviewRole = currentUserRole === 'SITE_HSE';
+        const roleDeskMap = {
+            SITE_MEDIC: { label: 'Site Clinic', subtitle: 'Medical Officer Verification Command Cockpit & Deployment Desk' },
+            SITE_HSE: { label: 'HSE Compliance', subtitle: 'Health, Safety & Environmental Review Command Desk' },
+            HO: { label: 'Head Office Desk', subtitle: 'Corporate Review & Final Approval Command Desk' },
+            ERP_TEAM: { label: 'ERP Operations', subtitle: 'Operations & System Monitoring Command Desk' },
+            DEVELOPER: { label: 'Developer Console', subtitle: 'System Support & Operational Validation Desk' },
+            SITE_MANAGER: { label: 'Site Control', subtitle: 'Site Administration & Mobility Coordination Desk' },
+            SUPPLIER: { label: 'Supplier Portal', subtitle: 'Submission Tracking & Compliance Coordination Desk' }
+        };
+        const visibleNavs = {
+            users: ['HO', 'ERP_TEAM', 'DEVELOPER'],
+            sites: ['HO', 'ERP_TEAM', 'DEVELOPER', 'SITE_MANAGER'],
+            suppliers: ['HO', 'ERP_TEAM', 'DEVELOPER'],
+            designations: ['HO', 'ERP_TEAM', 'DEVELOPER', 'SITE_MANAGER'],
+            portal: ['SUPPLIER']
+        };
         let pendingMobilizationsDataset = [];
         let currentMedicTabFilter = 'Pending';
         let selectedUrgencyFilter = 'ALL';
+
+        function applyRoleSpecificLayout() {
+            const roleMeta = roleDeskMap[currentUserRole] || roleDeskMap.SITE_MEDIC;
+            const badge = document.getElementById('roleDeskBadge');
+            const subtitle = document.getElementById('roleDeskSubtitle');
+
+            if (badge) badge.textContent = roleMeta.label;
+            if (subtitle) subtitle.textContent = roleMeta.subtitle;
+
+            document.querySelectorAll('[data-nav]').forEach((link) => {
+                const key = link.getAttribute('data-nav');
+                const allowed = visibleNavs[key] || [];
+                const shouldShow = allowed.includes(currentUserRole) || (!allowed.length && key === 'portal');
+                link.classList.toggle('hidden', !shouldShow);
+            });
+        }
 
         // Perimeter security gateway checking run
         if (!token) { window.location.href = "/user/login-page"; }
@@ -194,6 +226,8 @@
 
             renderMedicGridTable(filtered);
         }
+
+        applyRoleSpecificLayout();
 
         function setMedicStatusTab(tabType) {
             currentMedicTabFilter = tabType;

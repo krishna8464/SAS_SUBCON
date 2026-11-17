@@ -3,7 +3,7 @@ const roleAccess = {
   '/site/manage-sites': ['HO', 'ERP_TEAM', 'DEVELOPER', 'SITE_MANAGER'],
   '/supplier/manage-suppliers': ['HO', 'ERP_TEAM', 'DEVELOPER'],
   '/designation/manage-designations': ['HO', 'ERP_TEAM', 'DEVELOPER', 'SITE_MANAGER'],
-  '/mobilization/portal': ['SUPPLIER'],
+  '/mobilization/portal': ['SUPPLIER', 'DEVELOPER'],
   '/user/medic-dashboard': ['SITE_MEDIC', 'HO', 'ERP_TEAM', 'DEVELOPER', 'SITE_HSE'],
   '/user/hse-dashboard': ['SITE_HSE', 'HO', 'ERP_TEAM', 'DEVELOPER']
 };

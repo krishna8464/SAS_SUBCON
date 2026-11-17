@@ -1,4 +1,5 @@
 const express = require("express");
+const MobilizationRequest = require("../models/mobilization_request");
 const { 
     getPendingMedicRequests,
     getPendingHseRequests,
@@ -26,6 +27,38 @@ AdminReviewRoute.get("/medic-deck", authMiddleware, authorizeRoles('SITE_MEDIC',
 // 🛡️ SAFETY COMPLIANCE VIEW: Renders the upcoming views/hse_dashboard.ejs page template
 AdminReviewRoute.get("/hse-deck", authMiddleware, authorizeRoles('SITE_HSE', 'HO', 'ERP_TEAM', 'DEVELOPER'), (req, res) => {
     res.render("medic_dashboard"); 
+});
+
+AdminReviewRoute.get("/report", authMiddleware, authorizeRoles('HO', 'ERP_TEAM', 'DEVELOPER'), async (req, res) => {
+    try {
+        const requests = await MobilizationRequest.find({})
+            .populate('designation_id', 'title risk_level')
+            .populate('target_site_id', 'site_name site_code location')
+            .populate('sub_company_id', 'supplier_name registration_number contact_email')
+            .sort({ createdAt: -1 });
+
+        const stats = {
+            total: requests.length,
+            pending: requests.filter(item => item.status === 'Under Review' || item.status === 'Pending HO Approval').length,
+            approved: requests.filter(item => item.status === 'Approved' || item.status === 'Pending Site Admin').length,
+            rejected: requests.filter(item => item.status === 'Rejected').length
+        };
+
+        res.render('admin_report', {
+            requests,
+            stats,
+            user: {
+                name: req.user.name || 'Admin User',
+                email: req.user.email || 'N/A',
+                role: req.user.role || 'HO'
+            }
+        });
+    } catch (error) {
+        res.status(500).render('not_available', {
+            message: 'Unable to load the admin report. Please try again.',
+            redirectUrl: '/user/dashboard-view'
+        });
+    }
 });
 
 

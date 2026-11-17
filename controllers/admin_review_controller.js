@@ -1,7 +1,48 @@
 const MobilizationRequest = require("../models/mobilization_request");
 const SubcontractorEmployee = require("../models/subcontractor_employee");
 const mongoose = require("mongoose");
-const { purgeWorkforceBinaryFiles } = require("../utils/document_purger"); // 🌟 Import your purger utility
+const { purgeWorkforceBinaryFiles, scheduleDocumentRetentionPurge } = require("../utils/document_purger"); // 🌟 Import your purger utility
+
+const buildApprovalEmailBody = (request, supplierEmail) => {
+    const date = new Date().toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    const rows = [
+        ["Supplier Email", supplierEmail || "N/A"],
+        ["Employee Name", request.employee_name || "N/A"],
+        ["Civil ID", request.civil_id || "N/A"],
+        ["Nationality", request.nationality || "N/A"],
+        ["Designation", request.designation_id && request.designation_id.title ? request.designation_id.title : "N/A"],
+        ["Site", request.target_site_id && request.target_site_id.site_name ? request.target_site_id.site_name : "N/A"],
+        ["Supplier", request.sub_company_id && request.sub_company_id.supplier_name ? request.sub_company_id.supplier_name : "N/A"],
+        ["Status", request.status || "Approved"],
+        ["Approval Date", date]
+    ];
+
+    const colA = Math.max(...rows.map(([key]) => key.length));
+    const colB = Math.max(...rows.map(([, value]) => String(value).length));
+
+    const divider = `+${'-'.repeat(colA + 2)}+${'-'.repeat(colB + 2)}+`;
+    const formatRow = ([key, value]) => {
+        const left = String(key).padEnd(colA, ' ');
+        const right = String(value).padEnd(colB, ' ');
+        return `| ${left} | ${right} |`;
+    };
+
+    return [
+        "Approval Confirmation Email",
+        `Date: ${date}`,
+        divider,
+        formatRow(rows[0]),
+        ...rows.slice(1).map(formatRow),
+        divider
+    ].join("\n");
+};
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🟢 TIER 2: SITE REVIEW GATE (MEDIC, HSE, & WQT TEAMS)
@@ -79,7 +120,10 @@ const processHeadOfficeApproval = async (req, res) => {
             return res.status(400).json({ message: "Request ID and Decision Action parameters are mandatory entries." });
         }
 
-        const request = await MobilizationRequest.findById(requestId);
+        const request = await MobilizationRequest.findById(requestId)
+            .populate("designation_id", "title risk_level")
+            .populate("target_site_id", "site_name location site_code")
+            .populate("sub_company_id", "supplier_name registration_number contact_email");
         if (!request) return res.status(404).json({ message: "Mobilization application record not found." });
         if (request.status !== "Pending HO Approval") return res.status(400).json({ message: "This application is not pending Head Office authorization tracks." });
 
@@ -104,8 +148,9 @@ const processHeadOfficeApproval = async (req, res) => {
             return res.status(400).json({ message: `Authorization Blocked! Subcon ID '${cleanSubconId}' is already active on another worker record.` });
         }
 
-        // Advance mobilization file to Tier 4 Site Admin
-        request.status = "Pending Site Admin";
+        // Final Head Office approval is the terminal gate: once the Subcon ID is issued, the request is considered approved.
+        request.status = "Approved";
+        request.subcon_id = cleanSubconId;
 
         // Deactivate older deployments mapping to this worker's Civil ID to keep location history clean
         await SubcontractorEmployee.updateMany(
@@ -143,10 +188,25 @@ const processHeadOfficeApproval = async (req, res) => {
 
         await activeEmployeeProfile.save();
         
-        request.submission_history.push({ action: "HO Approved", by_user: req.user.id, timestamp: new Date().toISOString(), notes: `Head Office clearance validation success. Injected Subcon ID: ${cleanSubconId}. Advanced packet to Site Admin layout.` });
+        request.submission_history.push({ action: "HO Approved", by_user: req.user.id, timestamp: new Date().toISOString(), notes: `Head Office clearance validation success. Issued final Subcon ID: ${cleanSubconId}. Document retention window started: 10 days before file purge.` });
         await request.save();
 
-        res.status(200).json({ message: "Head Office approval complete! Profile provisioned and dispatched to local camp admin grids.", request });
+        const requestFiles = [request.medical_file_url, request.hse_file_url, request.wqt_file_url].filter(Boolean);
+        scheduleDocumentRetentionPurge(requestFiles, 10);
+
+        const supplierEmail = request.sub_company_id && request.sub_company_id.contact_email
+            ? request.sub_company_id.contact_email
+            : (request.sub_company_id && request.sub_company_id.toString ? request.sub_company_id.toString() : "N/A");
+
+        const finalEmailBody = buildApprovalEmailBody(request, supplierEmail);
+
+        res.status(200).json({
+            message: "Head Office approval complete! Profile provisioned and dispatched to local camp admin grids.",
+            request,
+            approvalEmailBody: finalEmailBody,
+            supplierEmail,
+            approvedAt: new Date().toISOString()
+        });
     } catch (error) {
         res.status(500).json({ message: "Error processing Head Office clearance gate execution", error: error.message });
     }
@@ -243,20 +303,18 @@ const getPendingHseRequests = async (req, res) => {
 
 const getHeadOfficeQueue = async (req, res) => {
     try {
-        const queue = await MobilizationRequest.find({
-            status: { $in: ["Pending HO Approval", "Pending Site Admin", "Approved", "Rejected", "Cancelled"] }
-        })
+        const queue = await MobilizationRequest.find({})
             .populate("designation_id", "title risk_level")
             .populate("target_site_id", "site_name location site_code")
-            .populate("sub_company_id", "supplier_name registration_number")
+            .populate("sub_company_id", "supplier_name registration_number contact_email")
             .sort({ updatedAt: -1 });
 
-        const pending = queue.filter(item => item.status === "Pending HO Approval");
-        const completed = queue.filter(item => ["Pending Site Admin", "Approved", "Rejected", "Cancelled"].includes(item.status));
+        const inProcess = queue.filter(item => !["Approved", "Rejected", "Cancelled"].includes(item.status));
+        const completed = queue.filter(item => ["Approved", "Rejected", "Cancelled"].includes(item.status));
 
         res.status(200).json({
             count: queue.length,
-            pendingCount: pending.length,
+            pendingCount: inProcess.length,
             completedCount: completed.length,
             requests: queue
         });

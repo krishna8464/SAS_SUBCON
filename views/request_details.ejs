@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SAS_SUBCON - Applicant Verification File</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/professional_ui.js"></script><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme_manager.js"></script><script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
@@ -37,6 +37,10 @@
                     <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 border-b border-slate-900 pb-2 flex items-center gap-1.5">👤 Worker Profile Registry</h3>
                     <div class="space-y-3 text-xs">
                         <div><span class="text-slate-500 font-semibold block uppercase">Employee Name:</span> <span id="lbl_worker_name" class="text-sm font-black text-white uppercase tracking-wide">--</span></div>
+                        <div id="wrap_assigned_subcon_id" class="hidden rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3">
+                            <span class="text-slate-500 font-semibold block uppercase">Assigned Subcon ID:</span>
+                            <span id="lbl_subcon_id" class="text-lg font-black text-emerald-300 uppercase tracking-[0.18em]">--</span>
+                        </div>
                         <div><span class="text-slate-500 font-semibold block uppercase">Oman Civil ID:</span> <span id="lbl_civil_id" class="font-mono text-slate-200 font-bold">--</span></div>
                         <div class="grid grid-cols-2 gap-2">
                             <div><span class="text-slate-500 font-semibold block uppercase">Nationality:</span> <span id="lbl_nationality" class="font-semibold text-slate-300">--</span></div>
@@ -130,6 +134,14 @@
 
                 // 1. Map static text biometric data fields
                 document.getElementById('lbl_worker_name').innerText = req.employee_name;
+                const subconWrap = document.getElementById('wrap_assigned_subcon_id');
+                const subconField = document.getElementById('lbl_subcon_id');
+                if (req.subcon_id) {
+                    subconField.innerText = req.subcon_id;
+                    subconWrap.classList.remove('hidden');
+                } else {
+                    subconWrap.classList.add('hidden');
+                }
                 document.getElementById('lbl_civil_id').innerText = req.civil_id;
                 document.getElementById('lbl_nationality').innerText = req.nationality;
                 document.getElementById('lbl_dob').innerText = new Date(req.dob).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });

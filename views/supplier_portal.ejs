@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/auth_guard.js"></script>
     <!-- 2. Tailwind CSS Runtime Engine Script CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/professional_ui.js"></script><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme_manager.js"></script><script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -53,11 +53,14 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-3 bg-slate-900/70 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300">
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-300 font-black">S</span>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-[0.2em] text-slate-500">Supplier</div>
+                            <div class="font-bold text-white">Portal Access</div>
+                        </div>
+                    </div>
                     <nav class="flex flex-wrap items-center gap-2">
-                        <a href="/user/manage-users" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Users</a>
-                        <a href="/site/manage-sites" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Sites</a>
-                        <a href="/supplier/manage-suppliers" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Suppliers</a>
-                        <a href="/designation/manage-designations" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 transition">Designations</a>
                         <a href="/mobilization/portal" class="bg-emerald-600/20 text-emerald-300 text-xs font-bold px-3 py-2 rounded-xl border border-emerald-500/30 transition">Portal</a>
                     </nav>
                     <button onclick="handleLogout()" 
@@ -188,6 +191,11 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Supplier Remarks</label>
+                        <textarea id="remarks" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-emerald-500 outline-none transition resize-none" placeholder="Add any operational remarks or supporting context for this request..."></textarea>
+                    </div>
+
                     <div class="pt-2">
                         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 px-4 rounded-xl text-xs uppercase tracking-wider transition shadow-lg shadow-emerald-600/10 active:scale-[0.99]">
                             Submit Worker Packet
@@ -294,6 +302,7 @@
     <!-- Script Engine Core: Maps data streams down to Express routing endpoints -->
         <!-- Master Script Pipeline: Fully handles data orchestration with your backend Mobilization APIs -->
     <script>
+        const currentPortalRole = '<%= role %>';
         const token = localStorage.getItem('token');
         let allRequests = [];
         let currentTabFilter = 'Review'; // Toggles across 'Review', 'Correction', 'Cleared' states
@@ -547,6 +556,7 @@ function applyHistoryFilters() {
                         <td class="px-6 py-4 vertical-align-middle">
                             <div class="font-black text-white text-xs uppercase tracking-wide">${req.employee_name}</div>
                             <div class="font-mono text-[10px] text-slate-500 font-bold mt-0.5">CIVIL ID: ${req.civil_id}</div>
+                            ${req.subcon_id ? `<div class="mt-2 inline-flex items-center rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-emerald-300">Subcon ID: ${req.subcon_id}</div>` : ''}
                             <div class="text-[10px] text-emerald-500/80 font-semibold mt-1.5 flex items-center gap-1.5">
                                 <span>📅 ${formattedSubmissionDate}</span>
                                 <a href="/mobilization/request-details/${req._id}" class="text-[9px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded border border-slate-700/60 font-black tracking-wider uppercase hover:bg-emerald-600 hover:text-white hover:border-transparent transition ml-1">View Profile 🔍</a>
@@ -604,6 +614,7 @@ function applyHistoryFilters() {
                 formDataPayload.append("target_site_id", document.getElementById('target_site_id').value);
                 formDataPayload.append("sponsor_company", document.getElementById('sponsor_company').value.trim());
                 formDataPayload.append("urgency", document.getElementById('urgency').value);
+                formDataPayload.append("remarks", document.getElementById('remarks').value.trim());
 
                 const medInput = document.getElementById('medical_file');
                 const hseInput = document.getElementById('hse_file');
@@ -668,7 +679,8 @@ function applyHistoryFilters() {
             console.error("Critical System Warning: HTML Element id='mobilizationForm' missing in action!");
         }
         async function dropMobilizationPacket(id) {
-            if (!confirm("Are you sure you want to completely drop and withdraw this pending employee mobilization request? All uploaded compliance documents will be permanently destroyed from database disks.")) return;
+            const confirmed = await openProfessionalConfirm("Are you sure you want to completely drop and withdraw this pending employee mobilization request? All uploaded compliance documents will be permanently destroyed from database disks.", "Withdraw Mobilization Request");
+            if (!confirmed) return;
             try {
                 const res = await fetch(`/mobilization/drop-request/${id}`, {
                     method: 'PUT',
@@ -691,7 +703,8 @@ function applyHistoryFilters() {
         // TERMINATION RUN: SECURE DISCONNECT & BACKEND SESSION DEACTIVATION
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         async function handleLogout() {
-            if (!confirm("Are you sure you want to safely disconnect your mobilization portal session?")) return;
+            const confirmed = await openProfessionalConfirm("Are you sure you want to safely disconnect your mobilization portal session?", "Disconnect Session");
+            if (!confirmed) return;
             try {
                 await fetch('/user/logout', { 
                     method: 'POST', 
@@ -769,6 +782,18 @@ function showAlert(msg, type) {
 }
 
         async function initializePortal() {
+            if (['HO', 'ERP_TEAM'].includes(currentPortalRole)) {
+                const leftFormPanel = document.getElementById('mobilizationForm') && document.getElementById('mobilizationForm').closest('section');
+                if (leftFormPanel) leftFormPanel.classList.add('hidden');
+                const mainContainer = document.querySelector('main');
+                if (mainContainer) {
+                    mainContainer.classList.remove('lg:grid-cols-12');
+                    mainContainer.classList.add('lg:grid-cols-1');
+                }
+                await loadSupplierDashboard();
+                return;
+            }
+
             await Promise.all([populateDesignationsDropdown(), populateSitesDropdown()]);
             loadSupplierDashboard();
         }

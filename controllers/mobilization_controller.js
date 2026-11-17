@@ -14,7 +14,7 @@ const createMobilizationRequest = async (req, res) => {
         const { 
             civil_id, employee_name, nationality, dob, mobile_number, 
             designation_id, civil_expire, accommodation_type, target_site_id, 
-            sponsor_company, urgency 
+            sponsor_company, urgency, remarks 
         } = req.body;
 
         const sub_company_id = 
@@ -120,6 +120,7 @@ const createMobilizationRequest = async (req, res) => {
             civil_expire: new Date(civil_expire),
             accommodation_type,
             sponsor_company: sponsor_company.trim(),
+            remarks: (remarks || '').trim(),
             medical_file_url, 
             hse_file_url,     
             wqt_file_url: verifiedWqtUrl, 
@@ -154,13 +155,20 @@ const getSupplierOwnMobilizations = async (req, res) => {
     try {
         console.log("Decoding authorization request token content details inside session tracking...", req.user);
 
-        // 🌟 CRITICAL CORRECTION: Traps all possible casing variations sent by your authMiddleware
+        if (['HO', 'ERP_TEAM', 'DEVELOPER'].includes(req.user.role)) {
+            const history = await MobilizationRequest.find({})
+                .populate("designation_id", "title risk_level")
+                .populate("target_site_id", "site_name location")
+                .populate("sub_company_id", "supplier_name registration_number contact_email")
+                .sort({ createdAt: -1 });
+
+            return res.status(200).json({ count: history.length, requests: history, scope: "global" });
+        }
+
         const companyId = 
             req.user.supplier_id || 
             req.user.supplierId || 
-            req.user.sub_company_id || 
-            req.user.id || 
-            req.user.userid;
+            req.user.sub_company_id;
 
         if (!companyId) {
             return res.status(400).json({ 
@@ -168,13 +176,13 @@ const getSupplierOwnMobilizations = async (req, res) => {
             });
         }
 
-        // Pull collection profiles and populate textual labels dynamically from database
         const history = await MobilizationRequest.find({ sub_company_id: companyId })
             .populate("designation_id", "title risk_level")
             .populate("target_site_id", "site_name location")
+            .populate("sub_company_id", "supplier_name registration_number contact_email")
             .sort({ createdAt: -1 });
 
-        res.status(200).json({ count: history.length, requests: history });
+        res.status(200).json({ count: history.length, requests: history, scope: "supplier" });
     } catch (error) {
         res.status(500).json({ message: "Error syncing workforce mobilization logs", error: error.message });
     }

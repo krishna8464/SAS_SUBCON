@@ -125,13 +125,16 @@ const loginUser = async (req, res) => {
 
         // Pack payload attributes into a clean, uniform lowercase structure matching your auth middleware
         const token = jwt.sign(
-            { 
-                userid: user._id, 
-                role: user.role, 
+            {
+                userid: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
                 siteId: user.site_id,
-                supplier_id: user.supplier_id 
-            }, 
-            JWT_SECRET, 
+                supplier_id: user.supplier_id,
+                cell_number: user.cell_number
+            },
+            JWT_SECRET,
             { expiresIn: "1d" }
         );
 
@@ -209,15 +212,13 @@ const updateSupplierId = async (req, res) => {
 const updateUserProfile = async (req, res, next) => {
     try {
         const targetId = req.params.id;
-        const { name, email, role, site_id, supplier_id, cell_number } = req.body;
+        const { name, email, password, role, site_id, supplier_id, cell_number } = req.body;
 
-        // 1. Locate the targeted account document within your collection channels
         const user = await User.findById(targetId);
         if (!user) {
             return res.status(404).json({ success: false, message: "Target personnel security profile row not found." });
         }
 
-        // 2. Shield email fields from matching duplicate key conflicts across documents
         if (email && email.toLowerCase() !== user.email) {
             const conflictMatch = await User.findOne({ email: email.toLowerCase().trim() });
             if (conflictMatch) {
@@ -226,12 +227,17 @@ const updateUserProfile = async (req, res, next) => {
             user.email = email.toLowerCase().trim();
         }
 
-        // 3. Mutate standard string properties safely
         if (name) user.name = name.trim();
         if (cell_number) user.cell_number = cell_number.trim();
         if (role) user.role = role;
 
-        // 4. Restructure site and supplier relational allocation references matching your model roles logic
+        if (typeof password === "string" && password.trim()) {
+            if (password.trim().length < 6) {
+                return res.status(400).json({ success: false, message: "Password must contain at least 6 characters." });
+            }
+            user.password = password.trim();
+        }
+
         if (role || site_id !== undefined || supplier_id !== undefined) {
             const activeRole = role || user.role;
             if (['HO', 'ERP_TEAM', 'DEVELOPER'].includes(activeRole)) {
@@ -247,6 +253,11 @@ const updateUserProfile = async (req, res, next) => {
         }
 
         await user.save();
+
+        if (typeof password === "string" && password.trim()) {
+            await Token.updateMany({ user_id: user._id, is_active: true }, { $set: { is_active: false } });
+        }
+
         res.status(200).json({ success: true, message: "User credentials and operational scopes updated successfully.", user });
     } catch (error) {
         res.status(500).json({ success: false, message: "Error updating target user registration indexes", error: error.message });

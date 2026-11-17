@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/auth_guard.js"></script>
     <!-- 2. CORRECTED Tailwind CSS Runtime Engine Script CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/professional_ui.js"></script><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme_manager.js"></script><script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -319,7 +319,8 @@
 
         // INTELLIGENT BINARY TOGGLE PIPELINE: Flips records between Active/Inactive states seamlessly
         async function deactivateSite(id) {
-            if (!confirm("Are you sure you want to alter this operational hub deployment status indicator?")) return;
+            const confirmed = await openProfessionalConfirm("Are you sure you want to alter this operational hub deployment status indicator?", "Change Site Status");
+            if (!confirmed) return;
             try {
                 const res = await fetch(`/site/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();

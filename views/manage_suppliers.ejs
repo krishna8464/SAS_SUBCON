@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/auth_guard.js"></script>
     <!-- 2. CORRECTED Tailwind CSS Runtime Engine Script CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/professional_ui.js"></script><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme_manager.js"></script><script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -312,7 +312,8 @@
         }
 
         async function deactivateSupplier(id) {
-            if (!confirm("Are you sure you want to alter this contractor operational profile status indicator?")) return;
+            const confirmed = await openProfessionalConfirm("Are you sure you want to alter this contractor operational profile status indicator?", "Change Supplier Status");
+            if (!confirmed) return;
             try {
                 const res = await fetch(`/supplier/delete/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
