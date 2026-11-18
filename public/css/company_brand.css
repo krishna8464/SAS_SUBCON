@@ -1,0 +1,29 @@
+.sas-company-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+  flex: 0 0 64px;
+}
+
+header > .sas-company-logo {
+  position: fixed;
+  top: 12px;
+  right: 72px;
+  z-index: 11000;
+  width: 46px;
+  height: 46px;
+  flex-basis: 46px;
+}
+
+@media (max-width: 900px) {
+  header > .sas-company-logo {
+    top: 8px;
+    right: 54px;
+    width: 40px;
+    height: 40px;
+  }
+}

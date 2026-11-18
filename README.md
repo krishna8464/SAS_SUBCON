@@ -35,5 +35,15 @@ The app listens on port 9002 by default.
 - /mobilization
 - /admin-review
 
+## Detailed operations documentation
+
+See `SAS_SUBCON_OPERATIONS_AND_HOSTING_GUIDE.md` for:
+- Complete page and route reference.
+- Workforce approval lifecycle.
+- Role matrix and security model.
+- Problems replaced by the system.
+- Windows/IIS, VM, Linux/container, and cloud hosting options.
+- Backup, monitoring, rollback, and safe deployment procedures.
+
 ## Development note
 This project uses Express, Mongoose, EJS, and MongoDB. The server is designed to work with a local MongoDB instance at MongoDB URI from the `.env` file.

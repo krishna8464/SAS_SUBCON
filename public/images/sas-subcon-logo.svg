@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+  <title id="title">SEEH AL SARYA Engineering LLC</title>
+  <desc id="desc">Red circular company logo with an oil derrick and engineering emblem.</desc>
+  <circle cx="320" cy="320" r="292" fill="#ffffff"/>
+  <circle cx="320" cy="320" r="292" fill="none" stroke="#d4212f" stroke-width="24"/>
+  <g fill="#d4212f">
+    <path d="M144 214h82c0 17-9 29-24 37l-39 21c-16 9-25 23-25 40 0 28 23 48 54 48h76v38H185c-57 0-95-36-95-91 0-34 17-62 50-82l4-2z"/>
+    <path d="M414 214h82v38h-59c-15 0-27 12-27 27 0 12 7 21 20 28l30 15c30 15 47 39 47 69 0 18-5 34-15 48h-79c15-12 23-27 23-43 0-14-8-25-25-34l-26-13c-29-15-46-36-46-66 0-38 30-69 75-69z"/>
+  </g>
+  <g fill="#0b8f47">
+    <path d="M132 398h44l-18 38h-58z"/>
+    <path d="M464 398h44l14 38h-58z"/>
+  </g>
+  <g fill="#d4212f" stroke="#d4212f" stroke-width="8" stroke-linejoin="round">
+    <path d="M282 398l38-82 38 82z" fill="#fff"/>
+    <path d="M320 250l-8 66h16z" fill="#d4212f"/>
+  </g>
+  <g fill="none" stroke="#d4212f" stroke-width="7" stroke-linejoin="round">
+    <path d="M282 398l38-82 38 82M320 316l-38 82M320 316l38 82M301 358l38 40M339 358l-38 40M320 316v82M292 398h56"/>
+  </g>
+  <g fill="#d4212f">
+    <rect x="316" y="286" width="8" height="42"/>
+    <rect x="308" y="274" width="24" height="15" rx="3"/>
+  </g>
+  <text x="320" y="466" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#d4212f">سِيج السرية للهندسة ش.م.م</text>
+  <text x="320" y="505" text-anchor="middle" font-family="Arial, sans-serif" font-size="31" font-weight="800" fill="#30343b" letter-spacing="4">SEEH AL SARYA</text>
+  <text x="320" y="535" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#d4212f" letter-spacing="8">ENGINEERING LLC</text>
+</svg>
