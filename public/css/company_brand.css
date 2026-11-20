@@ -1,12 +1,12 @@
 .sas-company-logo {
-  width: 64px;
-  height: 64px;
+  width: 174px;
+  height: 52px;
   object-fit: contain;
-  border-radius: 50%;
   background: #ffffff;
   border: 1px solid #e2e8f0;
+  border-radius: 8px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
-  flex: 0 0 64px;
+  flex: 0 0 174px;
 }
 
 header > .sas-company-logo {
@@ -14,16 +14,16 @@ header > .sas-company-logo {
   top: 12px;
   right: 72px;
   z-index: 11000;
-  width: 46px;
-  height: 46px;
-  flex-basis: 46px;
+  width: 116px;
+  height: 35px;
+  flex-basis: 116px;
 }
 
 @media (max-width: 900px) {
   header > .sas-company-logo {
     top: 8px;
     right: 54px;
-    width: 40px;
-    height: 40px;
+    width: 92px;
+    height: 28px;
   }
 }

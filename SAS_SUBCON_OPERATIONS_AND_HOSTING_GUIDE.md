@@ -1,5 +1,41 @@
 # SAS_SUBCON Operations and Company Hosting Guide
 
+## 1A. Authoritative Project Code Update (20 November 2026)
+
+The following sections supersede older descriptions in this guide. The application is currently a CommonJS Node.js/Express 5 application, not a separate frontend or microservice deployment.
+
+- Entry point: `index.js`; start command: `npm start`; development command: `npm run dev`.
+- Default HTTP listener: `PORT` or `9002`.
+- Runtime data provider: MongoDB/Mongoose using `MONGO_URL`, compatibility fallback `Mongo_url`, and finally local MongoDB `mongodb://127.0.0.1:27017/sas_subcon`.
+- GridFS document bucket: `workforce_docs`, with collections `workforce_docs.files` and `workforce_docs.chunks`.
+- Authentication: JWT in bearer header, `token` cookie, or `token` query parameter, plus an active row in the `Token` collection.
+- Browser assets: EJS views, public CSS/JavaScript, local Tailwind configuration, and `/images/sas-subcon-logo.svg` branding.
+- Upload policy: Multer accepts PDF only and limits each uploaded document to 5 MB. Files are first buffered to `public/uploads/tmp`, streamed to GridFS, and cleaned locally after success or failure.
+- Database-backed persistent application state is separate from the in-process document purge timer.
+
+### Route mounts in `index.js`
+
+| Prefix | Module | Responsibility |
+|---|---|---|
+| `/` | `index.js` | Redirect to `/user/login-page` |
+| `/user` | `routes/user_route.js` | Login, logout, dashboards, identity management |
+| `/site` | `routes/sites_route.js` | Site master data |
+| `/supplier` | `routes/suppliers_route.js` | Supplier master data |
+| `/designation` | `routes/designation_route.js` | Trade/designation master data |
+| `/mobilization` | `routes/mobilization_route.js` | Mobilization submission, resubmission, review context, documents |
+| `/admin-review` | `routes/admin_review_route.js` | Medic/HSE reviews, HO clearance, allocation, blacklist |
+
+### Environment variables
+
+| Variable | Required | Current behavior |
+|---|---|---|
+| `PORT` | No | Defaults to `9002` |
+| `MONGO_URL` | Yes in hosted environments | Primary MongoDB connection string |
+| `Mongo_url` | No | Compatibility fallback only |
+| `JWT_SECRET` | Yes in hosted environments | Used to sign and verify JWTs; production must override the code fallback |
+
+The template is `.env.example`. Do not commit a real `.env`, JWT secret, or MongoDB credential.
+
 ## 1. Purpose
 
 SAS_SUBCON replaces email-and-spreadsheet mobilization coordination with one controlled workflow for registering subcontractor workers, collecting required documents, conducting Medic/HSE/WQT reviews, obtaining Head Office approval, assigning Subcon IDs, and maintaining an auditable approval ledger.
@@ -15,6 +51,23 @@ The old process is typically slow and vulnerable to:
 - No clear terminal state after Subcon ID issuance.
 
 SAS_SUBCON solves these problems through authentication, role-based access, structured records, independent review gates, a global HO queue, a transaction history, report exports, GridFS document storage, and an approval-led Subcon ID lifecycle.
+
+## 1A. Current Release and Visual Identity Update
+
+This guide reflects the application code currently in the project workspace.
+
+- Application name: `SAS_SUBCON`.
+- Public login favicon and visible branding asset: `/images/sas-subcon-logo.svg`.
+- The login page displays one optimized circular SAS/SAS_SUBCON emblem inside the authentication card.
+- Shared application pages may display the same emblem automatically in their header area.
+- The shared branding script excludes `/` and `/user/login-page` so the login logo is not duplicated.
+- Browser caches may retain an old logo. Perform a hard refresh or clear cached images after deployment.
+
+### Logo deployment
+
+Use the SVG asset for normal viewing and favicon use. It scales cleanly without resizing or pixelation. Keep `/images/sas-subcon-logo.svg` on the public static path and do not rename it without updating:
+- `views/login.ejs`
+- `public/js/company_brand.js`
 
 ## 2. System Architecture
 
@@ -53,6 +106,16 @@ The process starts through `node index.js` or `npm start`.
 | `/designation` | Designation routes | Worker classifications/trades |
 | `/mobilization` | Mobilization routes | Worker packet submission, review files, details |
 | `/admin-review` | Review routes | Medic/HSE/WQT/HO review and reports |
+
+## 2A. Current Implementation Details
+
+- The server listens on `process.env.PORT` or port `9002`.
+- MongoDB uses `MONGO_URL`, then `Mongo_url`, then `mongodb://127.0.0.1:27017/sas_subcon`.
+- GridFS bucket name: `workforce_docs`.
+- Document purge is implemented in `utils/document_purger.js`.
+- After final approval, uploaded document URLs are scheduled for purge after 10 days using an application timer.
+- The timer exists in the Node.js process. A restart may delay or reset in-process timers, so production should also use a database-backed scheduled purge or server scheduler for durable retention enforcement.
+- PDF MIME/type and malware validation, health endpoints, release/version reporting, and MFA/SSO are recommended improvements and should not be assumed to be deployed.
 
 ## 3. Page and View Guide
 
@@ -251,6 +314,64 @@ This is not the same as deleting the mobilization record or employee profile. It
 | POST | `/admin-review/review-docs` | HSE/WQT decision endpoint |
 | PUT | `/admin-review/ho-clearance` | Assign Subcon ID/final approve |
 
+## 6A. Complete Current Route Inventory
+
+### Authentication and identity
+| Method | Route | Access |
+|---|---|---|
+| GET | `/user/login-page` | Public EJS login page |
+| POST | `/user/login` | Public login; JWT and active Token record |
+| POST | `/user/register` | Account creation endpoint |
+| POST | `/user/logout` | Authenticated; deactivate current Token |
+| GET | `/user/dashboard-view` | Authenticated role-based page routing |
+| GET | `/user/manage-users` | HO, ERP_TEAM, DEVELOPER |
+| GET | `/user/medic-dashboard` | Medic/HSE/management roles |
+| GET | `/user/hse-dashboard` | HSE/management roles |
+| GET | `/user/all` | Authenticated user directory |
+| PUT | `/user/update` | Legacy supplier-ID update endpoint |
+| PUT | `/user/toggle-status/:id` | Authenticated account activation/suspension |
+| PUT | `/user/update-profile/:id` | HO, ERP_TEAM, DEVELOPER |
+
+### Mobilization
+| Method | Route | Access |
+|---|---|---|
+| GET | `/mobilization/portal` | SUPPLIER, DEVELOPER, HO, ERP_TEAM |
+| GET | `/mobilization/request-details/:id` | Request detail view |
+| GET | `/mobilization/my-submissions` | Supplier-owned scope or HO/ERP/DEVELOPER global scope |
+| POST | `/mobilization/submit-worker` | Authenticated upload and packet creation |
+| PUT | `/mobilization/drop-request/:id` | Eligible packet cancellation |
+| PUT | `/mobilization/resubmit/:id` | Corrected packet resubmission |
+| GET | `/mobilization/request-context/:id` | Authenticated expanded request JSON |
+| POST | `/mobilization/resubmit-file/:id` | Replace a correction document |
+| GET | `/mobilization/file/:id` | Authenticated GridFS PDF streaming |
+
+### Review, allocation, and blacklist
+| Method | Route | Access |
+|---|---|---|
+| GET | `/admin-review/medic-deck` | Clinical/HSE/management view |
+| GET | `/admin-review/hse-deck` | HSE/management view |
+| GET | `/admin-review/report` | HO, ERP_TEAM, DEVELOPER |
+| GET | `/admin-review/medic/pending` | Medic and authorized review roles |
+| GET | `/admin-review/hse/pending` | HSE and authorized review roles |
+| GET | `/admin-review/ho/queue` | HO, ERP_TEAM, DEVELOPER |
+| POST | `/admin-review/medic/evaluate` | Medic decision or authorized management |
+| POST | `/admin-review/hse/evaluate` | HSE decision |
+| POST | `/admin-review/review-docs` | HSE/WQT document decision |
+| PUT | `/admin-review/ho-clearance` | HO, ERP_TEAM, DEVELOPER final approval/rejection |
+| PUT | `/admin-review/site-allocation` | SITE_MANAGER, HO, ERP_TEAM, DEVELOPER |
+| POST | `/admin-review/blacklist-worker` | HO, ERP_TEAM, DEVELOPER |
+
+### Master-data API pattern
+Site, supplier, and designation modules use the same REST shape:
+- Browser management view: `GET /<module>/manage-<module>`.
+- Create: `POST /<module>/create`.
+- List: `GET /<module>/all`.
+- Read: `GET /<module>/:id`.
+- Update: `PUT /<module>/update/:id`.
+- Delete/change status: `DELETE /<module>/delete/:id`.
+
+`/mobilization/request-details/:id` and `/mobilization/file/:id` must be reviewed for consistent authentication because they handle worker and document information. Publicly accessible document IDs must not be treated as authorization tokens.
+
 ## 7. Data Collections
 
 ### Core models
@@ -432,183 +553,66 @@ Recommended production values:
 
 Generate a secret with a cryptographically secure random generator. Never commit `.env` to Git.
 
-## 12. Windows Production Setup Example
+## 11A. Current Production Configuration Checklist
 
-Example process:
-1. Install Node.js LTS.
-2. Create `C:\apps\sas-subcon`.
-3. Copy or deploy the repository there.
-4. Run `npm install --omit=dev`.
-5. Create `.env`.
-6. Install application service using NSSM or PM2-Windows-Service.
-7. Set service to automatic and restart on failure.
-8. Start service.
-9. Verify `http://127.0.0.1:9002/user/login-page` locally.
-10. Configure IIS reverse proxy with SSL.
-11. Restrict IIS/Node folder permissions.
+Before starting the service:
 
-## 13. MongoDB Deployment Options
+1. Copy `.env.example` to a private `.env` on the host.
+2. Set `PORT=9002` unless an approved reverse-proxy deployment uses another private port.
+3. Set `MONGO_URL` to the production MongoDB URI with authentication and TLS if required.
+4. Generate a unique, high-entropy `JWT_SECRET`; do not use the `SAS_SUBCON` fallback in production.
+5. Confirm MongoDB creates and retains `workforce_docs.files` and `workforce_docs.chunks`.
+6. Confirm the application service account can write to `public/uploads/tmp` and read the complete application directory.
+7. Keep the temporary upload directory outside public/static exposure where practical and back up MongoDB/GridFS rather than temporary files.
+8. Configure IIS/Nginx for HTTPS and proxy only HTTP traffic to `127.0.0.1:9002`.
 
-### Local MongoDB
-Suitable for a first internal deployment.
-- Daily backup.
-- Automatic Windows service startup.
-- Private bind address.
-- Authentication enabled.
-- TLS if required by company policy.
+## 12A. Verified Local and Staging Commands
 
-### Replica set
-Recommended for high availability:
-- Primary.
-- Secondary.
-- Arbiter or additional secondary.
+Run from the repository root:
 
-### Managed MongoDB
-Use a company-approved managed database only if internal policy permits external service data residency.
-
-## 14. Backups and Retention
-
-Back up:
-- MongoDB databases/collections.
-- GridFS files (`workforce_docs.files` and `workforce_docs.chunks`).
-- Environment configuration separately and securely.
-- Application release files.
-
-Recommended schedule:
-- Database/GridFS snapshot daily.
-- Full backup before upgrades.
-- Test restore monthly or at a change-management-defined interval.
-- Retain temporary PDF files 10 days after HO approval.
-- Retain audit/history records according to company policy; do not purge approval history merely because PDFs expire.
-
-## 15. Monitoring and Operational Checks
-
-Monitor:
-- Node process availability.
-- Port 9002 listener.
-- MongoDB connection.
-- HTTP error rates.
-- Disk usage for MongoDB/GridFS.
-- Failed login attempts.
-- Active tokens.
-- Last backup status.
-- CPU/memory.
-- Application logs.
-
-Health checks:
-- Login page returns HTTP 200.
-- Unauthenticated dashboard returns login/access handling rather than application crash.
-- HO queue loads.
-- Supplier portal loads for authorized roles.
-- PDF streaming works.
-- MongoDB persists a test request in staging.
-- Password reset deactivates old token.
-
-## 16. Deployment Rollout Plan
-
-1. Create UAT/staging environment.
-2. Export an anonymized copy of staging data.
-3. Test all roles and pages.
-4. Test upload and GridFS streaming.
-5. Test the complete approval lifecycle.
-6. Test Subcon ID uniqueness.
-7. Test password update and session invalidation.
-8. Conduct management sign-off.
-9. Schedule production change window.
-10. Stop app or route traffic to maintenance mode.
-11. Backup MongoDB/GridFS.
-12. Deploy release package.
-13. Install dependencies.
-14. Start the service.
-15. Run smoke tests.
-16. Monitor for 24 hours.
-
-## 17. Rollback Procedure
-
-1. Stop new application traffic.
-2. Restore the previous application directory/package.
-3. Restart Node service.
-4. Restore database backup only if schema migration requires it.
-5. Recheck login and one complete review request.
-6. Document the rollback reason and affected data.
-
-Do not delete newly inserted approved records during rollback unless an approved rollback procedure explicitly requires data correction.
-
-## 18. Troubleshooting
-
-### Buttons do not respond
-- Check browser console for JavaScript undefined references.
-- Confirm a fresh page load.
-- Verify `hoQueueData` contains records.
-- Verify inline functions are loaded by `dashboard.ejs`.
-
-### Page shows access unavailable
-- Confirm user is logged in.
-- Confirm browser token and role storage.
-- Confirm active token exists in MongoDB.
-- Confirm role middleware allows the route.
-
-### Supplier page cannot open
-- Confirm role is SUPPLIER, HO, ERP_TEAM, or DEVELOPER.
-- Confirm authorization middleware sees the valid JWT.
-- Confirm `/mobilization/portal` route is mounted.
-- Confirm local storage role is synchronized during login.
-
-### PDF does not open
-- Confirm URL contains a valid GridFS ObjectId.
-- Confirm GridFS bucket `workforce_docs` exists.
-- Confirm file has not passed purge/withdrawal.
-
-### User password does not update
-- Confirm `password` is included and at least 6 characters.
-- Confirm Mongoose `isModified('password')` fires in `save()`.
-- Confirm old browser token is cleared/relogin.
-
-### HO cannot approve
-- Confirm Medical is approved.
-- Confirm HSE is approved.
-- Confirm WQT is approved or not required.
-- Confirm status is exactly `Pending HO Approval`.
-- Confirm Subcon ID is unique.
-
-## 19. Maintenance Responsibilities
-
-Recommended owner groups:
-- ERP/IT: server, MongoDB, HTTPS, backups, account reset.
-- HO Operations: final approvals and Subcon ID rules.
-- HSE: HSE/WQT review process.
-- Medical: fit-for-duty/medical verification.
-- Supplier coordinators: accurate worker packets and resubmissions.
-- Developer/ERP: system configuration and controlled enhancements.
-
-## 20. Recommended Next Improvements
-
-- Add server-side PDF malware and MIME validation.
-- Move Tailwind CDN usage to compiled CSS for production.
-- Add centralized application audit logs.
-- Add corporate SMTP approval notification integration.
-- Add automated GridFS 10-day purge job using MongoDB scheduled task or server scheduler.
-- Add application health endpoint.
-- Add structured backup verification reporting.
-- Add IP/VPN restrictions.
-- Add MFA/SSO for corporate accounts.
-- Add database encryption at rest and HTTPS only.
-- Add role/approval decision concurrency protections.
-- Add Subcon ID format policy and automatic ID generation.
-- Add release/version API endpoint.
-
-## 21. Quick Deployment Reference
-
-```text
-Application server:    Windows Server or dedicated VM
-Internal application:  http://127.0.0.1:9002
-Public/internal URL:   https://subcon.company.local
-Database:              Private MongoDB instance
-Document storage:      MongoDB GridFS bucket workforce_docs
-Process service:       node index.js under PM2/NSSM/Windows Service
-Reverse proxy:         IIS ARR or Nginx/Caddy
-Firewall:              HTTPS 443 public/internal; Node 9002 localhost/private only
-Backups:               MongoDB plus GridFS plus .env release snapshot
+```powershell
+npm install
+node --check index.js
+node --check routes/user_route.js
+node --check routes/mobilization_route.js
+node --check routes/admin_review_route.js
+npm start
 ```
 
-This guide describes how the system should be operated as an internal company application and does not replace formal company IT change-management, security, and data-retention policies.
+Open:
+
+```text
+http://127.0.0.1:9002/user/login-page
+```
+
+When MongoDB and the application are running, execute the repository smoke check:
+
+```powershell
+node verify_role_flow.js
+```
+
+The smoke check creates a temporary HO account, signs in, and verifies dashboard/site access. Remove or isolate test accounts and records in non-production environments.
+
+### Pre-production verification
+
+- Confirm `npm start` reaches MongoDB and logs successful GridFS bucket initialization.
+- Confirm the login page, favicon/logo, and login redirect.
+- Verify each role receives only authorized pages and APIs.
+- Verify supplier submission isolation and global HO/ERP/DEVELOPER views.
+- Upload each supported PDF field and confirm 5 MB/ PDF-only enforcement.
+- Confirm WQT is mandatory for Welder trades and not required for other trades.
+- Verify Medic, HSE/WQT, and HO gate state transitions.
+- Verify Subcon ID uniqueness and employee deployment inactivation.
+- Verify site allocation activates the employee record when used.
+- Verify logout and password changes invalidate old sessions.
+- Verify direct PDF IDs require a valid authenticated session and produce no secret or stack trace in browser responses.
+- Confirm backup/restore includes GridFS collections.
+
+### Known implementation caveats
+
+- `/mobilization/request-details/:id` is currently a page route and requires a follow-up security review for worker-record ownership if stricter page protection is required.
+- `/mobilization/file/:id` streams from GridFS. It should remain behind authenticated application access and any reverse proxy/routing rules.
+- Document purge scheduled with `setTimeout` is process-local. A Node restart loses pending timers, so production requires a durable scheduled purge or database-backed retention job.
+- `allocateSiteAccommodation` also immediately purges its supplied PDF blobs. This behavior may be earlier than or different from the standard 10-day approval-retention schedule and should be reflected in company data-retention policy.
+- There is no real automated `npm test` suite; `npm test` is currently an intentional placeholder.
+- No health endpoint, MFA/SSO, malware scanning, corporate SMTP provider, or durable scheduled job should be assumed to be deployed from the repository alone.

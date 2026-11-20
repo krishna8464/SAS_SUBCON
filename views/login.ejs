@@ -6,7 +6,7 @@
     <title>SAS_SUBCON - Portal Authentication</title>
     <!-- 1. Local Fallback Static Stylesheet Link -->
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" type="image/svg+xml" href="/images/sas-subcon-logo.svg">
+    <link rel="icon" type="image/svg+xml" href="/images/sas-subcon-favicon.svg?v=2">
     <script>
         (function () {
             const token = localStorage.getItem('token');
@@ -43,7 +43,7 @@
         })();
     </script>
     <!-- 2. Tailwind CSS Runtime Engine Script CDN -->
-    <link rel="stylesheet" href="/css/theme.css"><link rel="stylesheet" href="/css/company_brand.css"><script src="/js/theme_manager.js"></script><script src="/js/company_brand.js"></script><script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/theme.css"><link rel="stylesheet" href="/css/company_brand.css"><script src="/js/theme_manager.js"></script><script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -68,7 +68,9 @@
         <section class="bg-slate-950 border border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6 backdrop-blur-md" style="background-color: #020617 !important; border: 1px solid #1e293b !important; border-radius: 1.5rem !important;">
             
             <!-- Core Brand Indicia Header -->
-            <div class="text-center space-y-2" style="display: block !important;">
+            <div class="text-center space-y-3" style="display: block !important;">
+                <img src="/images/sas-subcon-logo.svg?v=official-2026" alt="SEEH AL SARYA Engineering LLC"
+                     style="width: 300px; max-width: 82%; height: 90px; object-fit: contain; display: block; margin: 0 auto 0.25rem; filter: drop-shadow(0 10px 18px rgba(201,31,50,.16));">
                 <h2 class="text-3xl font-black tracking-tight text-white flex items-center justify-center gap-2">
                     <span>SAS_SUBCON</span>
                     <span class="text-[10px] bg-emerald-500/10 text-emerald-400 font-extrabold px-2 py-0.5 rounded-md border border-emerald-500/20 tracking-wider uppercase">Secure</span>
